@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>pack-o-bot</title>
+  <link rel="stylesheet" href="milligram.css">
+  <style>
+    body {
+      color: #444;
+      line-height: 1.2em;
+      margin: .5em .75em;
+    }
+    p {
+      margin-bottom: .5em;
+    }
+    small {
+      font-size: 11px;
+    }
+    .muted {
+      color: #bbb;
+    }
+    a {
+      color: #2F78D6;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    input {
+      color: #666;
+    }
+    input[type='email']:focus,
+    input[type='number']:focus,
+    input[type='password']:focus,
+    input[type='search']:focus,
+    input[type='tel']:focus,
+    input[type='text']:focus,
+    input[type='url']:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #2F78D6;
+    }
+
+    .button {
+      background-color: #2F78D6;
+      border-color: #2F78D6;
+    }
+    .button.button-clear,
+    .button.button-outline {
+      background-color: transparent;
+      color: #2F78D6;
+    }
+    .button.button-clear {
+      border-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <fieldset>
+    <p>
+      <b>Email</b><br>
+      <small>Enter the token you registered at <a href="https://staging.pitytracker.com/packobot" id="token_link">pitytracker.com</a></small>
+    </p>
+    <input type="text" id="token"/>
+    <p class="column center">
+      <button class="button" id="submit">Save</button>
+    </p>
+
+    <div>
+      <small class="muted">&copy; 2017 Jared Mellentine (mlntn#1796)</small>
+    </div>
+  </fieldset>
+</body>
+
+<script>
+  // You can also require other files to run in this process
+  require('./renderer.js')
+</script>
+</html>
