@@ -34,7 +34,7 @@ function createWindow () {
     app.dock.show();
   }
 
-  mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 300});
+  mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 350});
 
   mainWindow.token = token;
 
