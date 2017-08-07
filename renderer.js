@@ -14,3 +14,7 @@ document.getElementById('token_link').onclick = function(e){
   e.preventDefault();
   electron.shell.openExternal(this.href);
 };
+
+electron.ipcRenderer.on('status-change', function (event, message) {
+  document.getElementById('status').innerText = message;
+});

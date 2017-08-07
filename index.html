@@ -54,18 +54,25 @@
     .button.button-clear {
       border-color: transparent;
     }
+    #status {
+      color: #999;
+      font-size: 12px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
   <fieldset>
     <p>
-      <b>Email</b><br>
-      <small>Enter the token you registered at <a href="https://staging.pitytracker.com/packobot" id="token_link">pitytracker.com</a></small>
+      <b>Token</b><br>
+      <small>Pack-o-bot uploads its data to PityTracker. To use pack-o-bot you need to enter your personal token which is used to identify your uploads at PityTracker. Find it here: <a href="https://www.pitytracker.com/packobot" id="token_link">pitytracker.com/packobot</a></small>
     </p>
     <input type="text" id="token"/>
     <p class="column center">
       <button class="button" id="submit">Save</button>
     </p>
+
+    <p id="status">Watching for packs...</p>
 
     <div>
       <small class="muted">&copy; 2017 Jared Mellentine (mlntn#1796)</small>

@@ -19,19 +19,22 @@ let mainWindow;
 
 let token;
 
+let status_message = 'Watching for packs...';
+
 const store = new Store({
   configName: 'user',
   defaults: {
-    'token': null
+    'token': null,
+    'region': 'xx',
   }
 });
 
 function createWindow () {
   if (require('os').platform() === 'darwin') {
-    app.dock.hide();
+    app.dock.show();
   }
 
-  mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 350, height: 250});
+  mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 300});
 
   mainWindow.token = token;
 
@@ -41,8 +44,13 @@ function createWindow () {
     slashes: true
   }));
 
+  mainWindow.show();
+
   mainWindow.on('closed', function () {
     mainWindow = null;
+    if (require('os').platform() === 'darwin') {
+      app.dock.hide();
+    }
   });
 }
 
@@ -57,19 +65,27 @@ ipc.on('put-in-tray', function (event) {
     appIcon.setPressedImage(path.join(__dirname, 'tray-invert.png'));
   }
 
-  const contextMenu = Menu.buildFromTemplate([
+  setupContextMenu();
+});
+
+let setupContextMenu = function(){
+  let contextMenu = Menu.buildFromTemplate([
     {
-      label: 'pack-o-bot v0.9-beta',
+      label: 'pack-o-bot v0.9',
       enabled: false
     },
     {
       label: 'Settings...',
       click: function () {
-        if (mainWindow === null) {
-          createWindow();
-        }
+        createWindow();
       }
     },
+    { type: "separator" },
+    {
+      label: status_message,
+      enabled: false
+    },
+    { type: "separator" },
     {
       label: 'Quit',
       click: function () {
@@ -79,7 +95,7 @@ ipc.on('put-in-tray', function (event) {
   ]);
   appIcon.setToolTip('pack-o-bot');
   appIcon.setContextMenu(contextMenu);
-});
+};
 
 ipc.on('settings-changed', function(event, e) {
   store.set('token', e);
@@ -95,11 +111,41 @@ app.on('ready', function(){
 
   hs.watchPacks(token);
 
+  let template = [{
+    label: "Application",
+    submenu: [
+      { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+    ]}, {
+    label: "Edit",
+    submenu: [
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+      { type: "separator" },
+      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+    ]}
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
   createWindow();
 
   if (token) {
     mainWindow.hide();
     mainWindow = null;
+    if (require('os').platform() === 'darwin') {
+      app.dock.hide();
+    }
+  }
+});
+
+app.on('status-change', function (message) {
+  status_message = message;
+  setupContextMenu();
+
+  if (mainWindow) {
+    mainWindow.webContents.send('status-change', message);
   }
 });
 

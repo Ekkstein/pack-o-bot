@@ -4,6 +4,13 @@ const ini = require('ini');
 const request = require('request');
 const async = require('async');
 const config = require(path.join(__dirname, 'config.json'));
+const app = require('electron').app;
+
+const Store = require(path.join(__dirname, 'Store.js'));
+
+const store = new Store({
+  configName: 'user'
+});
 
 module.exports = {
   configFile: process.platform === 'win32' ? require('os').homedir() + '\\AppData\\Local\\Blizzard\\Hearthstone\\log.config' : require('os').homedir() + '/Library/Preferences/Blizzard/Hearthstone/log.config',
@@ -53,10 +60,15 @@ module.exports = {
       let region = line.match(/(us|eu|kr)\.actual.battle.net/);
 
       if (region === null) {
-        return;
+        self.region = store.get('region');
+      }
+      else {
+        self.region = region[1];
+
+        store.set('region', self.region);
       }
 
-      self.region = region[1];
+      console.log(self.region);
     });
   },
 
@@ -77,7 +89,7 @@ module.exports = {
           });
 
           if (matches.length >= 5 && matches.length % 5 === 0) {
-            // we have at least one pack, people
+            app.emit('status-change', 'Pack found!');
 
             let n = 5;
             let chunks = Array(Math.ceil(matches.length/n)).fill().map((_,i) => matches.slice(i*n,i*n+n));;
@@ -94,6 +106,7 @@ module.exports = {
                   return 500 * Math.pow(2, retryCount); // 1s, 2s, 4s, 8s, etc
                 }
               }, function (callback, results) {
+                app.emit('status-change', 'Uploading your pack to PityTracker...');
                 return request.post({
                   url: 'https://staging.pitytracker.com/api/v1/packs',
                   body: req,
@@ -105,15 +118,26 @@ module.exports = {
                   },
                   timeout: 10000
                 }, function(error, response, body){
+                  console.log(body);
                   if (response.statusCode < 300) {
+                    app.emit('status-change', 'Pack uploaded to PityTracker.');
+                    setTimeout(function(){
+                      app.emit('status-change', 'Watching for packs...');
+                    }, 5000);
                     callback(null, 'done');
                   }
                   else {
+                    app.emit('status-change', 'Retrying pack upload... (' + response.statusCode + ', '+ response.body +')');
                     callback('failed', null);
                   }
                 });
               }, function(err, result) {
-                  // noop
+                if (err) {
+                  app.emit('status-change', 'Failed: Pack couldn\'t be uploaded to PityTracker. (' + response.statusCode + ', '+ response.body +')');
+                  setTimeout(function(){
+                    app.emit('status-change', 'Watching for packs...');
+                  }, 5000);
+                }
               });
             });
           }
