@@ -8,9 +8,7 @@ const app = require('electron').app;
 
 const Store = require(path.join(__dirname, 'Store.js'));
 
-const store = new Store({
-  configName: 'user'
-});
+let store = new Store({ configName: 'user' });
 
 module.exports = {
   configFile: process.platform === 'win32' ? require('os').homedir() + '\\AppData\\Local\\Blizzard\\Hearthstone\\log.config' : require('os').homedir() + '/Library/Preferences/Blizzard/Hearthstone/log.config',
@@ -45,11 +43,9 @@ module.exports = {
 
       fs.writeFile(self.configFile, ini.stringify(existing), function(){});
     });
-
-    this.getRegion();
   },
 
-  getRegion: function() {
+  getRegion: function(cb) {
     let self = this;
 
     return fs.readFile(path.join(this.logPath, 'BattleNet.log'), 'utf8', function(error, contents) {
@@ -59,20 +55,25 @@ module.exports = {
 
       let region = line.match(/(us|eu|kr)\.actual.battle.net/);
 
-      if (region === null) {
-        self.region = store.get('region');
-      }
-      else {
-        self.region = region[1];
+      let new_region = (region === null) ? store.get('region') : region[1];
+
+      if (self.region !== new_region) {
+        self.region = new_region;
 
         store.set('region', self.region);
-      }
 
-      console.log(self.region);
+        app.emit('status-change', 'Updated region to ' + new_region.toUpperCase());
+
+        setTimeout(function(){
+          app.emit('status-change', 'Watching for packs...');
+        }, 5000);
+
+        cb();
+      }
     });
   },
 
-  watchPacks: function(token) {
+  watchPacks: function() {
     let self = this;
     let logFile = path.join(this.logPath, 'Achievements.log');
     fs.watchFile(logFile, function(current, old){
@@ -89,55 +90,57 @@ module.exports = {
           });
 
           if (matches.length >= 5 && matches.length % 5 === 0) {
-            app.emit('status-change', 'Pack found!');
+            self.getRegion(function(){
+              app.emit('status-change', 'Pack found!');
 
-            let n = 5;
-            let chunks = Array(Math.ceil(matches.length/n)).fill().map((_,i) => matches.slice(i*n,i*n+n));;
+              let n = 5;
+              let chunks = Array(Math.ceil(matches.length/n)).fill().map((_,i) => matches.slice(i*n,i*n+n));;
 
-            chunks.forEach(function(pack){
-              let req = {
-                region: self.region,
-                cards: pack
-              };
+              chunks.forEach(function(pack){
+                let req = {
+                  region: self.region,
+                  cards: pack
+                };
 
-              async.retry({
-                times: 10,
-                interval: function(retryCount) {
-                  return 500 * Math.pow(2, retryCount); // 1s, 2s, 4s, 8s, etc
-                }
-              }, function (callback, results) {
-                app.emit('status-change', 'Uploading your pack to PityTracker...');
-                return request.post({
-                  url: 'https://staging.pitytracker.com/api/v1/packs',
-                  body: req,
-                  json: true,
-                  headers: {
-                    pobtoken: token,
-                    Authorization: 'Token token="'+ config.apptoken +'"',
-                    'Content-Type': 'application/json'
-                  },
-                  timeout: 10000
-                }, function(error, response, body){
-                  console.log(body);
-                  if (response.statusCode < 300) {
-                    app.emit('status-change', 'Pack uploaded to PityTracker.');
+                async.retry({
+                  times: 10,
+                  interval: function(retryCount) {
+                    return 500 * Math.pow(2, retryCount); // 1s, 2s, 4s, 8s, etc
+                  }
+                }, function (callback, results) {
+                  store = new Store({ configName: 'user' });
+                  app.emit('status-change', 'Uploading your pack to PityTracker...');
+                  return request.post({
+                    url: 'https://staging.pitytracker.com/api/v1/packs',
+                    body: req,
+                    json: true,
+                    headers: {
+                      pobtoken: store.get('token'),
+                      Authorization: 'Token token="'+ config.apptoken +'"',
+                      'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                  }, function(error, response, body){
+                    if (response.statusCode < 300) {
+                      app.emit('status-change', 'Pack uploaded to PityTracker.');
+                      setTimeout(function(){
+                        app.emit('status-change', 'Watching for packs...');
+                      }, 5000);
+                      callback(null, 'done');
+                    }
+                    else {
+                      app.emit('status-change', 'Retrying pack upload... (' + response.statusCode + ')');
+                      callback('failed', null);
+                    }
+                  });
+                }, function(err, result) {
+                  if (err) {
+                    app.emit('status-change', 'Failed: Pack couldn\'t be uploaded to PityTracker. (' + response.statusCode + ')');
                     setTimeout(function(){
                       app.emit('status-change', 'Watching for packs...');
                     }, 5000);
-                    callback(null, 'done');
-                  }
-                  else {
-                    app.emit('status-change', 'Retrying pack upload... (' + response.statusCode + ', '+ response.body +')');
-                    callback('failed', null);
                   }
                 });
-              }, function(err, result) {
-                if (err) {
-                  app.emit('status-change', 'Failed: Pack couldn\'t be uploaded to PityTracker. (' + response.statusCode + ', '+ response.body +')');
-                  setTimeout(function(){
-                    app.emit('status-change', 'Watching for packs...');
-                  }, 5000);
-                }
               });
             });
           }

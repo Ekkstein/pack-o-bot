@@ -17,8 +17,6 @@ let appIcon = null;
 
 let mainWindow;
 
-let token;
-
 let status_message = 'Watching for packs...';
 
 const store = new Store({
@@ -36,7 +34,7 @@ function createWindow () {
 
   mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 350});
 
-  mainWindow.token = token;
+  mainWindow.token = store.get('token');
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -57,15 +55,16 @@ function createWindow () {
 ipc.on('put-in-tray', function (event) {
   if (appIcon !== null) return;
 
-  const iconPath = path.join(__dirname, 'tray' + (process.platform === 'win32' ? '-invert' : '') + '.png');
+  let iconPath;
+  iconPath = path.join(__dirname, 'tray-invert.png');
+  if (require('os').platform() === 'darwin') {
+    iconPath = electron.nativeImage.createFromPath(path.join(__dirname, 'tray.png'));
+    iconPath.setTemplateImage(true);
+  }
 
   appIcon = new Tray(iconPath);
 
-  if (require('os').platform() === 'darwin') {
-    appIcon.setPressedImage(path.join(__dirname, 'tray-invert.png'));
-  }
-
-  setupContextMenu();
+  setupContextMenu(appIcon);
 });
 
 let setupContextMenu = function(){
@@ -97,19 +96,20 @@ let setupContextMenu = function(){
   appIcon.setContextMenu(contextMenu);
 };
 
-ipc.on('settings-changed', function(event, e) {
-  store.set('token', e);
-  token = e;
+ipc.on('settings-changed', function(event, token) {
+  store.set('token', token);
 
-  mainWindow.hide();
+  app.emit('status-change', 'Updated token to ' + token);
+
+  setTimeout(function(){
+    app.emit('status-change', 'Watching for packs...');
+  }, 2000);
 });
 
 app.on('ready', function(){
-  token = store.get('token');
-
   hs.setup();
 
-  hs.watchPacks(token);
+  hs.watchPacks();
 
   let template = [{
     label: "Application",
@@ -130,14 +130,6 @@ app.on('ready', function(){
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
   createWindow();
-
-  if (token) {
-    mainWindow.hide();
-    mainWindow = null;
-    if (require('os').platform() === 'darwin') {
-      app.dock.hide();
-    }
-  }
 });
 
 app.on('status-change', function (message) {
