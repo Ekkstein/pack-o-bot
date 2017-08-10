@@ -91,8 +91,8 @@ module.exports = {
   buildRequest: function(pack) {
     console.log(pack);
     return {
-      // url: 'https://pitytracker.com/api/v1/packs',
-      url: 'http://localhost:3001/api/v1/packs',
+      url: 'https://pitytracker.com/api/v1/packs',
+      // url: 'http://localhost:3001/api/v1/packs',
       body: pack,
       json: true,
       headers: {
@@ -133,17 +133,17 @@ module.exports = {
           callback(null, 'done');
         }
         else {
-          let message = 'Retrying pack upload...'
+          let message = 'Retrying pack upload...('+ response.statusCode + ')';
           console.log(message);
           app.emit('status-change', message);
-          callback('failed', null);
+          callback(response, null);
         }
       });
     }
 
-    asyncCallback = function(err, result) {
-      if (err) {
-        let message = 'Failed: Pack couldn\'t be uploaded to PityTracker.';
+    asyncCallback = function(response, result) {
+      if (response) {
+        let message = 'Failed: Pack couldn\'t be uploaded to PityTracker. Error: '+ response.statusCode;
         console.log(message);
         app.emit('status-change', message);
         busyFlag = false;
