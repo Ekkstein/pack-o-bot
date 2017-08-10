@@ -7,9 +7,18 @@ const config = require(path.join(__dirname, 'config.json'));
 const app = require('electron').app;
 
 const Store = require(path.join(__dirname, 'Store.js'));
-let store = new Store({ configName: 'user',
+let store = new Store({
+  configName: 'packs',
   defaults: {
+    region: 'xx',
     unsentPacks: {}
+  }
+});
+
+let user_store = new Store({
+  configName: 'user',
+  defaults: {
+    token: null
   }
 });
 
@@ -80,12 +89,13 @@ module.exports = {
   },
 
   buildRequest: function(pack) {
+    console.log(pack);
     return {
       url: 'https://pitytracker.com/api/v1/packs',
       body: pack,
       json: true,
       headers: {
-        pobtoken: store.get('token'),
+        pobtoken: user_store.get('token'),
         Authorization: 'Token token="'+ config.apptoken +'"',
         'Content-Type': 'application/json'
       },

@@ -25,8 +25,7 @@ let status_message = 'Watching for packs...';
 const store = new Store({
   configName: 'user',
   defaults: {
-    'token': null,
-    'region': 'xx',
+    token: null
   }
 });
 
