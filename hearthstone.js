@@ -91,7 +91,8 @@ module.exports = {
   buildRequest: function(pack) {
     console.log(pack);
     return {
-      url: 'https://pitytracker.com/api/v1/packs',
+      // url: 'https://pitytracker.com/api/v1/packs',
+      url: 'http://localhost:3001/api/v1/packs',
       body: pack,
       json: true,
       headers: {
@@ -118,7 +119,9 @@ module.exports = {
       req = self.buildRequest(pack);
       return request.post(req, function(error, response, body){
         if (response && response.statusCode < 300) {
-          app.emit('status-change', 'Pack uploaded to PityTracker.');
+          let message = 'Pack uploaded to PityTracker.'
+          console.log(message);
+          app.emit('status-change', message);
           busyFlag = false;
           let unsentPacks = store.get('unsentPacks')
           delete unsentPacks[pack.created_at_hs]
@@ -130,7 +133,9 @@ module.exports = {
           callback(null, 'done');
         }
         else {
-          app.emit('status-change', 'Retrying pack upload...');
+          let message = 'Retrying pack upload...'
+          console.log(message);
+          app.emit('status-change', message);
           callback('failed', null);
         }
       });
@@ -139,6 +144,7 @@ module.exports = {
     asyncCallback = function(err, result) {
       if (err) {
         let message = 'Failed: Pack couldn\'t be uploaded to PityTracker.';
+        console.log(message);
         app.emit('status-change', message);
         busyFlag = false;
         pack.pending = false;
@@ -194,6 +200,7 @@ module.exports = {
   watchPacks: function() {
     let self = this;
     fs.watchFile(store.path, { interval: 1007 }, function(current, old){
+      console.log('watchPacks triggert');
       if (current.size != old.size) {
         unsentPacks = store.get('unsentPacks')
         let packsToSend = Object.values(unsentPacks).filter( ( pack ) => {
