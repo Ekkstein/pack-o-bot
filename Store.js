@@ -18,6 +18,7 @@ class Store {
     this.data[key] = val;
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
+
 }
 
 function parseDataFile(filePath, defaults) {

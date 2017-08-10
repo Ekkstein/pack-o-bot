@@ -5,6 +5,7 @@ const ipc = electron.ipcMain;
 const Menu = electron.Menu;
 const Tray = electron.Tray;
 const fs = require('original-fs');
+const request = require('request');
 
 const path = require('path');
 const url = require('url');
@@ -12,6 +13,8 @@ const url = require('url');
 const Store = require(path.join(__dirname, 'Store.js'));
 
 const hs = require(path.join(__dirname, 'hearthstone.js'));
+
+const Tester = require(path.join(__dirname, 'tester.js'));
 
 let appIcon = null;
 
@@ -26,6 +29,21 @@ const store = new Store({
     'region': 'xx',
   }
 });
+
+function checkForUpdate () {
+  req = {
+    // url: 'https://github.com/mlntn/pack-o-bot/releases/latest',
+    // url: 'https://github.com/stevschmid/track-o-bot/releases/latest',
+    url: 'https://pitytracker.com/packobot-version.txt',
+    timeout: 10000
+  }
+  return request.get(req, function(error, response, body){
+    if (body != app.getVersion()) {
+      console.log('You need to update Pack-o-Bot!', app.getVersion())
+      createUpdateWindow();
+    }
+  });
+}
 
 function createWindow () {
   if (require('os').platform() === 'darwin') {
@@ -46,6 +64,29 @@ function createWindow () {
 
   mainWindow.on('closed', function () {
     mainWindow = null;
+    if (require('os').platform() === 'darwin') {
+      app.dock.hide();
+    }
+  });
+}
+
+function createUpdateWindow () {
+  if (require('os').platform() === 'darwin') {
+    app.dock.show();
+  }
+
+  updateWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 350});
+
+  updateWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'update.html'),
+    protocol: 'file:',
+    slashes: true
+  }));
+
+  updateWindow.show();
+
+  updateWindow.on('closed', function () {
+    updateWindow = null;
     if (require('os').platform() === 'darwin') {
       app.dock.hide();
     }
@@ -86,6 +127,14 @@ let setupContextMenu = function(){
     },
     { type: "separator" },
     {
+      label: 'Simulate Pack Opening',
+      click: function () {
+        // createWindow();
+        Tester.openPack();
+      }
+    },
+    { type: "separator" },
+    {
       label: 'Quit',
       click: function () {
         app.quit();
@@ -107,9 +156,13 @@ ipc.on('settings-changed', function(event, token) {
 });
 
 app.on('ready', function(){
+  checkForUpdate();
   hs.setup();
-
+  hs.getLines();
   hs.watchPacks();
+  hs.watchLogfile();
+  hs.clearPendingFlags();
+
 
   let template = [{
     label: "Application",

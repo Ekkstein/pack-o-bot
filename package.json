@@ -1,6 +1,6 @@
 {
   "name": "pack-o-bot",
-  "version": "0.9.0",
+  "version": "0.2.0",
   "description": "A minimal application to track Hearthstone packs",
   "main": "main.js",
   "scripts": {
@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "async": "^2.5.0",
+    "dateformat": "^2.0.0",
+    "electron-json-storage": "^3.0.7",
     "ini": "^1.3.4",
     "request": "^2.81.0"
   }

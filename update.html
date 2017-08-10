@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>pack-o-bot</title>
+  <link rel="stylesheet" href="milligram.css">
+  <style>
+    body {
+      color: #444;
+      line-height: 1.2em;
+      margin: .5em .75em;
+    }
+    p {
+      margin-bottom: .5em;
+    }
+    small {
+      font-size: 11px;
+    }
+    .muted {
+      color: #bbb;
+    }
+    a {
+      color: #2F78D6;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    input {
+      color: #666;
+    }
+    input[type='email']:focus,
+    input[type='number']:focus,
+    input[type='password']:focus,
+    input[type='search']:focus,
+    input[type='tel']:focus,
+    input[type='text']:focus,
+    input[type='url']:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #2F78D6;
+    }
+
+    .button {
+      background-color: #2F78D6;
+      border-color: #2F78D6;
+    }
+    .button.button-clear,
+    .button.button-outline {
+      background-color: transparent;
+      color: #2F78D6;
+    }
+    .button.button-clear {
+      border-color: transparent;
+    }
+    #status {
+      color: #999;
+      font-size: 12px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h3>Pack-o-Bot needs to be updated!</h3>
+  <p>We're still in beta, so every update is crucial!</p>
+  <p>Please go to <a href="https://pitytracker.com/packobot">pitytracker.com/packobot</a> to download the new version.</p>
+
+</body>
+
+<script>
+  // You can also require other files to run in this process
+  require('./renderer.js')
+</script>
+</html>
