@@ -130,7 +130,7 @@ module.exports = {
           callback(null, 'done');
         }
         else {
-          app.emit('status-change', 'Retrying pack upload...');
+          app.emit('status-change', 'Retrying pack upload... (' + response.statusCode + ')');
           callback('failed', null);
         }
       });
@@ -138,7 +138,7 @@ module.exports = {
 
     asyncCallback = function(err, result) {
       if (err) {
-        let message = 'Failed: Pack couldn\'t be uploaded to PityTracker.';
+        let message = 'Failed: Pack couldn\'t be uploaded to PityTracker.' + response.statusCode + ')';
         app.emit('status-change', message);
         busyFlag = false;
         pack.pending = false;
