@@ -11,6 +11,7 @@ class Store {
   }
 
   get(key) {
+    this.data = parseDataFile(this.path);
     return this.data[key] || '';
   }
 
