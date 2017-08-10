@@ -126,13 +126,13 @@ let setupContextMenu = function(){
       enabled: false
     },
     { type: "separator" },
-    {
-      label: 'Simulate Pack Opening',
-      click: function () {
-        // createWindow();
-        Tester.openPack();
-      }
-    },
+    // {
+    //   label: 'Simulate Pack Opening',
+    //   click: function () {
+    //     // createWindow();
+    //     Tester.openPack();
+    //   }
+    // },
     { type: "separator" },
     {
       label: 'Quit',

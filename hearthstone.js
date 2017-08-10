@@ -12,7 +12,6 @@ let store = new Store({ configName: 'user' });
 let busyFlag = false;
 
 const packStorage = require('electron-json-storage');
-const lineStorage = require('electron-json-storage');
 
 module.exports = {
   configFile: process.platform === 'win32' ? require('os').homedir() + '\\AppData\\Local\\Blizzard\\Hearthstone\\log.config' : require('os').homedir() + '/Library/Preferences/Blizzard/Hearthstone/log.config',
@@ -78,7 +77,7 @@ module.exports = {
 
   buildRequest: function(pack) {
     return {
-      url: 'https://staging.pitytracker.com/api/v1/packs',
+      url: 'https://pitytracker.com/api/v1/packs',
       body: pack,
       json: true,
       headers: {
