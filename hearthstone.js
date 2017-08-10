@@ -7,7 +7,11 @@ const config = require(path.join(__dirname, 'config.json'));
 const app = require('electron').app;
 
 const Store = require(path.join(__dirname, 'Store.js'));
-let store = new Store({ configName: 'user' });
+let store = new Store({ configName: 'user',
+  defaults: {
+    unsentPacks: []
+  }
+});
 
 let busyFlag = false;
 
