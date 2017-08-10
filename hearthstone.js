@@ -9,7 +9,7 @@ const app = require('electron').app;
 const Store = require(path.join(__dirname, 'Store.js'));
 let store = new Store({ configName: 'user',
   defaults: {
-    unsentPacks: []
+    unsentPacks: {}
   }
 });
 
