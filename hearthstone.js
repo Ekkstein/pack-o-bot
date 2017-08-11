@@ -231,7 +231,7 @@ module.exports = {
           let data = contents.substr(old.size, current.size - old.size);
           let matches = [];
           let now = new Date()
-          data.replace(/(\d{2}):(\d{2}):(\d{2})\.(\d{3})\d+ NotifyOfCardGained: \[name=.+? cardId=(.+?) type=.+?\] (GOLDEN|NORMAL) (\d)/g, function(all,h,m,s,ms, cardId, golden, owned){
+          data.replace(/(\d{2}):(\d{2}):(\d{2})\.(\d{3})\d+ NotifyOfCardGained: \[name=.+? cardId=(.+?) type=.+?\] (GOLDEN|NORMAL) (\d+)/g, function(all,h,m,s,ms, cardId, golden, owned){
             matches.push({
               cardId: cardId,
               golden: golden === 'GOLDEN',
