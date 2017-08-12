@@ -21,7 +21,7 @@ document.getElementById('dataDir').setAttribute(
 );
 
 document.getElementById('submit').onclick = function(){
-  electron.ipcRenderer.send('settings-changed', token_input.value);
+  electron.ipcRenderer.send('settings-changed', [...document.body.querySelectorAll('input')].map(e => ({key: e.id, value: e.value})));
 };
 
 document.getElementById('token_link').onclick = function(e){

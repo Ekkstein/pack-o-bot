@@ -144,10 +144,10 @@ let setupContextMenu = function(){
   appIcon.setContextMenu(contextMenu);
 };
 
-ipc.on('settings-changed', function(event, token) {
-  store.set('token', token);
+ipc.on('settings-changed', function(event, data) {
+  store.setArray(data);
 
-  app.emit('status-change', 'Updated token to ' + token);
+  app.emit('status-change', 'Updated settings.');
 
   setTimeout(function(){
     app.emit('status-change', 'Watching for packs...');

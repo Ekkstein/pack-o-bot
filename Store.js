@@ -21,6 +21,19 @@ class Store {
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
 
+  /**
+   * Write multiple key/value pairs to a file.
+   * @param {Object[]} pairs - The key/value pairs to be written.
+   * @param {string} pairs[].key
+   * @param {*} pairs[].value
+   */
+  setArray(ar) {
+    ar.forEach(e => {
+      this.data[e.key] = e.value;
+    });
+    fs.writeFileSync(this.path, JSON.stringify(this.data));
+  }
+
 }
 
 function parseDataFile(filePath, defaults) {
