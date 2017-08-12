@@ -59,6 +59,26 @@
       font-size: 12px;
       font-style: italic;
     }
+
+    /* First child of .accordion element toggles visibility of all other children */
+    .accordion > :first-child {
+      cursor: default;
+      user-select: none;
+    }
+    .accordion > :first-child::before {
+      content: "−";
+      font-weight: bold;
+      padding-right: 0.5em;
+    }
+    .accordion > :nth-child(1n+2) {
+      margin-left: 1em;
+    }
+    .accordion.collapsed > :first-child::before {
+      content: "+";
+    }
+    .accordion.collapsed > :nth-child(1n+2) {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -68,6 +88,19 @@
       <small>Pack-o-bot uploads its data to PityTracker. To use pack-o-bot, you need to enter your personal token which is used to identify your uploads at PityTracker. Find it here: <a href="https://pitytracker.com/packobot" id="token_link">pitytracker.com/packobot</a></small>
     </p>
     <input type="text" id="token"/>
+    <div class="accordion collapsed">
+      <p><b>Advanced</b></p>
+      <p>
+        <b>Hearthstone install directory</b><br>
+        <small>If you have installed Hearthstone to a nonstandard directory, enter it here.</small>
+      </p>
+      <input type="text" id="hearthstoneDir"/>
+      <p>
+        <b>Hearthstone user data directory</b><br>
+        <small>If your user data lives somewhere unusual, enter it here.</small>
+      </p>
+      <input type="text" id="dataDir"/>
+    </div>
     <p class="column center">
       <button class="button" id="submit">Save</button>
     </p>

@@ -26,10 +26,27 @@ let busyFlag = false;
 
 const packStorage = require('electron-json-storage');
 
+let configFile = (user_store.get('dataDir') !== '') ? (
+  path.join(user_store.get('dataDir'), 'log.config')
+) : (
+  (process.platform === 'win32') ? (
+    path.join(require('os').homedir(), 'AppData/Local/Blizzard/Hearthstone/log.config')
+  ) : (
+    path.join(require('os').homedir(), '/Library/Preferences/Blizzard/Hearthstone/log.config')
+  )
+);
+let logPath = (user_store.get('hearthstoneDir') !== '') ? (
+  path.join(user_store.get('hearthstoneDir'), 'Logs/')
+) : (
+  (process.platform === 'win32') ? (
+    'C:/Program Files (x86)/Hearthstone/Logs/'
+  ) : (
+    '/Applications/Hearthstone/Logs/'
+  )
+);
 module.exports = {
-  configFile: process.platform === 'win32' ? require('os').homedir() + '\\AppData\\Local\\Blizzard\\Hearthstone\\log.config' : require('os').homedir() + '/Library/Preferences/Blizzard/Hearthstone/log.config',
-
-  logPath: process.platform === 'win32' ? 'C:\\Program Files (x86)\\Hearthstone\\Logs\\' : '/Applications/Hearthstone/Logs/',
+  configFile,
+  logPath,
 
   region: 'xx',
 
@@ -56,7 +73,12 @@ module.exports = {
         existing[v].FilePrinting = true;
       });
 
-      fs.writeFile(self.configFile, ini.stringify(existing), function(){});
+      fs.writeFile(self.configFile, ini.stringify(existing), function(err) {
+        if (!err) return;
+        setTimeout(() => {
+          app.emit('status-change', `Couldn't write to ${self.configFile}! Are your paths set correctly?`);
+        }, 1000);
+      });
     });
   },
 
