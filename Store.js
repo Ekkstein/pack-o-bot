@@ -8,11 +8,15 @@ class Store {
     this.path = path.join(userDataPath, opts.configName + '.json');
 
     this.data = parseDataFile(this.path, opts.defaults);
-    this.options = opts
+    this.options = opts;
+    this.loadedFromFile = false;
   }
 
   get(key) {
-    this.data = parseDataFile(this.path);
+    if (!this.loadedFromFile) {
+      this.data = parseDataFile(this.path);
+      this.loadedFromFile = true;
+    }
     return this.data[key] || '';
   }
 
