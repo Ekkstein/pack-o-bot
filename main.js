@@ -52,6 +52,8 @@ function createWindow () {
   mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 350});
 
   mainWindow.token = store.get('token');
+  mainWindow.hearthstoneDir = store.get('hearthstoneDir');
+  mainWindow.dataDir = store.get('dataDir');
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -147,11 +149,12 @@ let setupContextMenu = function(){
 ipc.on('settings-changed', function(event, data) {
   store.setArray(data);
 
-  app.emit('status-change', 'Updated settings.');
+  // TODO We can do better than this. Next version.
+  app.emit('status-change', 'Updated settings. You will need to restart Pack-o-Bot if you changed any directory paths.');
 
   setTimeout(function(){
     app.emit('status-change', 'Watching for packs...');
-  }, 2000);
+  }, 7000);
 });
 
 app.on('ready', function(){

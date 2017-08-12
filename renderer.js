@@ -4,16 +4,20 @@ let win = electron.remote.getCurrentWindow();
 electron.ipcRenderer.send('put-in-tray');
 
 let token_input = document.getElementById('token');
+let hearthstoneDir_input = document.getElementById('hearthstoneDir');
+let dataDir_input = document.getElementById('dataDir');
 token_input.value = win.token;
+hearthstoneDir_input.value = win.hearthstoneDir;
+dataDir_input.value = win.dataDir;
 
-document.getElementById('hearthstoneDir').setAttribute(
+hearthstoneDir_input.setAttribute(
   'placeholder',
   process.platform === 'win32'
   ? 'C:\\Program Files (x86)\\Hearthstone\\'
   : '/Applications/Hearthstone/'
 );
 
-document.getElementById('dataDir').setAttribute(
+dataDir_input.setAttribute(
   'placeholder',
   process.platform === 'win32'
     ? require('os').homedir() + '\\AppData\\Local\\Blizzard\\Hearthstone\\'
