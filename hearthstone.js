@@ -222,7 +222,7 @@ module.exports = {
   watchPacks: function() {
     let self = this;
     fs.watchFile(store.path, { interval: 1007 }, function(current, old){
-      console.log('watchPacks triggert');
+      console.log('watchPacks triggered');
       if (current.size != old.size) {
         unsentPacks = store.get('unsentPacks')
         let packsToSend = Object.values(unsentPacks).filter( ( pack ) => {

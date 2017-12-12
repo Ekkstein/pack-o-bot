@@ -35,10 +35,10 @@ function checkForUpdate () {
     // url: 'https://github.com/stevschmid/track-o-bot/releases/latest',
     url: 'https://pitytracker.com/packobot-version.txt',
     timeout: 10000
-  }
+  };
   return request.get(req, function(error, response, body){
-    if (body != app.getVersion()) {
-      console.log('You need to update Pack-o-Bot!', app.getVersion())
+    if (body > app.getVersion()) {
+      console.log('You need to update pack-o-bot!', app.getVersion());
       createUpdateWindow();
     }
   });
@@ -76,7 +76,7 @@ function createUpdateWindow () {
     app.dock.show();
   }
 
-  updateWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 350});
+  updateWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 180});
 
   updateWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'update.html'),
@@ -112,7 +112,7 @@ ipc.on('put-in-tray', function (event) {
 let setupContextMenu = function(){
   let contextMenu = Menu.buildFromTemplate([
     {
-      label: 'pack-o-bot v0.2.1',
+      label: 'pack-o-bot v0.2.2',
       enabled: false
     },
     {
@@ -150,11 +150,11 @@ ipc.on('settings-changed', function(event, data) {
   store.setArray(data);
 
   // TODO We can do better than this. Next version.
-  app.emit('status-change', 'Updated settings. You will need to restart Pack-o-Bot if you changed any directory paths.');
+  app.emit('status-change', 'Updated settings. You will need to restart pack-o-bot if you changed any directory paths.');
 
   setTimeout(function(){
     app.emit('status-change', 'Watching for packs...');
-  }, 7000);
+  }, 5000);
 });
 
 app.on('ready', function(){

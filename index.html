@@ -46,23 +46,19 @@
       background-color: #2F78D6;
       border-color: #2F78D6;
     }
-    .button.button-clear,
-    .button.button-outline {
-      background-color: transparent;
-      color: #2F78D6;
-    }
-    .button.button-clear {
-      border-color: transparent;
-    }
     #status {
       color: #999;
       font-size: 12px;
       font-style: italic;
     }
 
+    .accordion {
+      font-size: 12px;
+    }
+
     /* First child of .accordion element toggles visibility of all other children */
     .accordion > :first-child {
-      cursor: default;
+      cursor: pointer;
       user-select: none;
     }
     .accordion > :first-child::before {
@@ -92,7 +88,7 @@
       <p><b>Advanced</b></p>
       <p>
         <b>Hearthstone install directory</b><br>
-        <small>If you have installed Hearthstone to a nonstandard directory, enter it here.</small>
+        <small>If you have installed Hearthstone to a non-standard directory, enter it here.</small>
       </p>
       <input type="text" id="hearthstoneDir"/>
       <p>
