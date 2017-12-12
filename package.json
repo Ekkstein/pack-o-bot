@@ -1,6 +1,6 @@
 {
   "name": "pack-o-bot",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "A minimal application to track Hearthstone packs",
   "main": "main.js",
   "scripts": {
