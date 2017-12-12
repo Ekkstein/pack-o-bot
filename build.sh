@@ -5,3 +5,7 @@ electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --prune
 mv dist/pack-o-bot-win32-ia32 dist/pack-o-bot
 cd dist && zip -qr pack-o-bot-win.zip pack-o-bot && cd -
 rm -fr dist/pack-o-bot
+electron-packager . --overwrite --asar=true --platform=linux --arch=ia32 --out=dist
+mv dist/pack-o-bot-linux-ia32 dist/pack-o-bot
+cd dist && tar czvf pack-o-bot-linux-ia32.tar.gz pack-o-bot && cd -
+rm -r dist/pack-o-bot

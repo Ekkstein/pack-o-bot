@@ -8,16 +8,33 @@ class Store {
     this.path = path.join(userDataPath, opts.configName + '.json');
 
     this.data = parseDataFile(this.path, opts.defaults);
-    this.options = opts
+    this.options = opts;
+    this.loadedFromFile = false;
   }
 
   get(key) {
-    this.data = parseDataFile(this.path);
+    if (!this.loadedFromFile) {
+      this.data = parseDataFile(this.path);
+      this.loadedFromFile = true;
+    }
     return this.data[key] || '';
   }
 
   set(key, val) {
     this.data[key] = val;
+    fs.writeFileSync(this.path, JSON.stringify(this.data));
+  }
+
+  /**
+   * Write multiple key/value pairs to a file.
+   * @param {Object[]} pairs - The key/value pairs to be written.
+   * @param {string} pairs[].key
+   * @param {*} pairs[].value
+   */
+  setArray(ar) {
+    ar.forEach(e => {
+      this.data[e.key] = e.value;
+    });
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
 
