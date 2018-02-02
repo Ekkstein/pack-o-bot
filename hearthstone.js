@@ -120,7 +120,6 @@ module.exports = {
       return request.post(req, function(error, response, body){
         if (response && response.statusCode < 300) {
           let message = 'Pack uploaded to PityTracker.'
-          console.log(message);
           app.emit('status-change', message);
           busyFlag = false;
           let unsentPacks = store.get('unsentPacks')
@@ -132,11 +131,20 @@ module.exports = {
           }, 5000);
           callback(null, 'done');
         }
-        else {
-          let message = 'Retrying pack upload...('+ response.statusCode + ')';
-          console.log(message);
+        else if (response && response.statusCode >= 300){
+          let message = 'Retrying pack upload...(statusCode: '+ response.statusCode + ')';
           app.emit('status-change', message);
-          callback(response, null);
+          callback(null, response);
+        }
+        else if (error){
+          let message = 'Retrying pack upload...(error: '+ error + ')';
+          app.emit('status-change', message);
+          callback(error, 'error');
+        }
+        else{
+          let message = 'Error sending response'
+          app.emit('status-change', message);
+          callback(null, 'unknown Error');
         }
       });
     }
