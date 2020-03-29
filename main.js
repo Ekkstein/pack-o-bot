@@ -112,7 +112,7 @@ ipc.on('put-in-tray', function (event) {
 let setupContextMenu = function(){
   let contextMenu = Menu.buildFromTemplate([
     {
-      label: 'pack-o-bot v0.3.0',
+      label: 'pack-o-bot v0.3.1',
       enabled: false
     },
     {
