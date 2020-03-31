@@ -59,9 +59,9 @@ function createSettingsWindow () {
   }
 
   settingsWindow = new BrowserWindow({
-    backgroundColor: '#f4f4f4', 
-    width: 400, 
-    height: 350, 
+    backgroundColor: '#f4f4f4',
+    width: 400,
+    height: 350,
     x: 1300, y: 50
   });
 
@@ -97,9 +97,9 @@ function createDebugWindow () {
   }
 
   debugWindow = new BrowserWindow({
-    backgroundColor: '#f4f4f4', 
-    width: 800, 
-    height: 1000, 
+    backgroundColor: '#f4f4f4',
+    width: 800,
+    height: 1000,
     x: 1850, y: 50
   });
 
@@ -161,7 +161,7 @@ ipc.on('put-in-tray', function (event) {
 });
 
 let setupContextMenu = function(){
-  let contextMenu = Menu.buildFromTemplate([
+  const menuItems = [
     {
       label: 'pack-o-bot v0.3.1',
       enabled: false
@@ -170,22 +170,6 @@ let setupContextMenu = function(){
       label: 'Settings',
       click: function () {
         createSettingsWindow();
-      }
-    },
-    if (process.env.ELECTRON_ENV === 'development') {
-      {
-        label: 'Debug',
-        click: function () {
-          createDebugWindow();
-        }
-      },
-      { type: "separator" },
-      {
-        label: 'Simulate Pack Opening',
-        click: function () {
-          // createSettingsWindow();
-          Tester.openPack();
-        }
       }
     },
     { type: "separator" },
@@ -200,7 +184,27 @@ let setupContextMenu = function(){
         app.quit();
       }
     }
-  ]);
+  ]
+  if (process.env.ELECTRON_ENV === 'development') {
+    const devItems = [
+      {
+        label: 'Debug',
+        click: function () {
+          createDebugWindow();
+        }
+      },
+      { type: "separator" },
+      {
+        label: 'Simulate Pack Opening',
+        click: function () {
+          // createSettingsWindow();
+          Tester.openPack();
+        }
+      }
+    ]
+    menuItems.splice(2, 0, ...devItems)
+  }
+  let contextMenu = Menu.buildFromTemplate(menuItems);
   appIcon.setToolTip('pack-o-bot');
   appIcon.setContextMenu(contextMenu);
 };

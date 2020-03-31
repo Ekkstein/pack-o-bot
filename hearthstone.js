@@ -111,10 +111,14 @@ module.exports = {
   },
 
   buildRequest: function(pack) {
-    console.log(pack);
+    let url
+    if (process.env.ELECTRON_ENV === 'development'){
+      url = 'http://localhost:3001/api/v1/packs'
+    } else {
+      url = 'https://pitytracker.com/api/v1/packs'
+    }
     return {
-      url: 'https://pitytracker.com/api/v1/packs',
-      // url: 'http://localhost:3001/api/v1/packs',
+      url: url,
       body: pack,
       json: true,
       headers: {
