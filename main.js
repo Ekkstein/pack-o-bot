@@ -100,12 +100,12 @@ function createDebugWindow () {
     backgroundColor: '#f4f4f4', 
     width: 800, 
     height: 1000, 
-    x: 1850, y: 50,
+    x: 1850, y: 50
     // title: 'CD App', 
     // frame: false, 
     // titleBarStyle: 'hidden', 
     // type: 'desktop',
-    alwaysOnTop: true
+    // alwaysOnTop: true
   });
 
   debugWindow.unsentPacks = packStore.get('unsentPacks');

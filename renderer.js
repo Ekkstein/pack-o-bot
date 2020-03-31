@@ -1,8 +1,8 @@
 let electron = require('electron');
 let win = electron.remote.getCurrentWindow();
-// app.dock.hide();
-// win.setAlwaysOnTop(true, "floating", 1);
-// win.setVisibleOnAllWorkspaces(true);
+app.dock.hide();
+win.setAlwaysOnTop(true, "floating", 1);
+win.setVisibleOnAllWorkspaces(true);
 
 electron.ipcRenderer.send('put-in-tray');
 
