@@ -1,5 +1,6 @@
 const electron = require('electron');
 const app = electron.app;
+const _ = require('lodash');
 const BrowserWindow = electron.BrowserWindow;
 const ipc = electron.ipcMain;
 const Menu = electron.Menu;
@@ -23,10 +24,18 @@ let debugWindow;
 
 let status_message = 'Watching for packs...';
 
-const store = new Store({
+const userStore = new Store({
   configName: 'user',
   defaults: {
     token: null
+  }
+});
+
+let packStore = new Store({
+  configName: 'packs',
+  defaults: {
+    region: 'xx',
+    unsentPacks: {}
   }
 });
 
@@ -54,12 +63,12 @@ function createSettingsWindow () {
     backgroundColor: '#f4f4f4', 
     width: 400, 
     height: 350, 
-    x: 1400, y: 50
+    x: 1300, y: 50
   });
 
-  settingsWindow.token = store.get('token');
-  settingsWindow.hearthstoneDir = store.get('hearthstoneDir');
-  settingsWindow.dataDir = store.get('dataDir');
+  settingsWindow.token = userStore.get('token');
+  settingsWindow.hearthstoneDir = userStore.get('hearthstoneDir');
+  settingsWindow.dataDir = userStore.get('dataDir');
 
   settingsWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'windows/settings.html'),
@@ -84,14 +93,15 @@ function createDebugWindow () {
 
   debugWindow = new BrowserWindow({
     backgroundColor: '#f4f4f4', 
-    width: 400, 
-    height: 600, 
+    width: 800, 
+    height: 1000, 
     x: 1850, y: 50
   });
 
-  debugWindow.token = store.get('token');
-  debugWindow.hearthstoneDir = store.get('hearthstoneDir');
-  debugWindow.dataDir = store.get('dataDir');
+  // debugWindow.token = userStore.get('token');
+  // debugWindow.hearthstoneDir = userStore.get('hearthstoneDir');
+  // debugWindow.dataDir = userStore.get('dataDir');
+  debugWindow.unsentPacks = packStore.get('unsentPacks');
 
   debugWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'windows/debug.html'),
@@ -192,7 +202,7 @@ let setupContextMenu = function(){
 };
 
 ipc.on('settings-changed', function(event, data) {
-  store.setArray(data);
+  userStore.setArray(data);
 
   // TODO We can do better than this. Next version.
   app.emit('status-change', 'Updated settings. You will need to restart pack-o-bot if you changed any directory paths.');
@@ -231,6 +241,7 @@ app.on('status-change', function (message) {
 
   // settingsWindow.webContents.send('status-change', message);
   debugWindow.webContents.send('status-change', message);
+  console.log('test main')
 
   // if (settingsWindow) {
   //   settingsWindow.webContents.send('status-change', message);

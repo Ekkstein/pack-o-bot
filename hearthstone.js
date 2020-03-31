@@ -7,7 +7,7 @@ const config = require(path.join(__dirname, 'config.json'));
 const app = require('electron').app;
 
 const Store = require(path.join(__dirname, 'Store.js'));
-let store = new Store({
+let packStore = new Store({
   configName: 'packs',
   defaults: {
     region: 'xx',
@@ -15,7 +15,7 @@ let store = new Store({
   }
 });
 
-let user_store = new Store({
+let userStore = new Store({
   configName: 'user',
   defaults: {
     token: null
@@ -26,8 +26,8 @@ let busyFlag = false;
 
 const packStorage = require('electron-json-storage');
 
-let configFile = (user_store.get('dataDir') !== '') ? (
-  path.join(user_store.get('dataDir'), 'log.config')
+let configFile = (userStore.get('dataDir') !== '') ? (
+  path.join(userStore.get('dataDir'), 'log.config')
 ) : (
   (process.platform === 'win32') ? (
     path.join(require('os').homedir(), 'AppData/Local/Blizzard/Hearthstone/log.config')
@@ -35,8 +35,8 @@ let configFile = (user_store.get('dataDir') !== '') ? (
     path.join(require('os').homedir(), '/Library/Preferences/Blizzard/Hearthstone/log.config')
   )
 );
-let logPath = (user_store.get('hearthstoneDir') !== '') ? (
-  path.join(user_store.get('hearthstoneDir'), 'Logs/')
+let logPath = (userStore.get('hearthstoneDir') !== '') ? (
+  path.join(userStore.get('hearthstoneDir'), 'Logs/')
 ) : (
   (process.platform === 'win32') ? (
     'C:/Program Files (x86)/Hearthstone/Logs/'
@@ -92,12 +92,12 @@ module.exports = {
 
       let region = line.match(/(us|eu|kr)\.actual.battle.net/);
 
-      let new_region = (region === null) ? store.get('region') : region[1];
+      let new_region = (region === null) ? packStore.get('region') : region[1];
 
       if (self.region !== new_region) {
         self.region = new_region;
 
-        store.set('region', self.region);
+        packStore.set('region', self.region);
 
         app.emit('status-change', 'Updated region to ' + new_region.toUpperCase());
 
@@ -118,7 +118,7 @@ module.exports = {
       body: pack,
       json: true,
       headers: {
-        pobtoken: user_store.get('token'),
+        pobtoken: userStore.get('token'),
         Authorization: 'Token token="'+ config.apptoken +'"',
         'Content-Type': 'application/json'
       },
@@ -144,9 +144,9 @@ module.exports = {
           let message = 'Pack uploaded to PityTracker.'
           app.emit('status-change', message);
           busyFlag = false;
-          let unsentPacks = store.get('unsentPacks')
+          let unsentPacks = packStore.get('unsentPacks')
           delete unsentPacks[pack.created_at_hs]
-          store.set('unsentPacks',unsentPacks)
+          packStore.set('unsentPacks',unsentPacks)
           self.clearPendingFlags()
           setTimeout(function(){
             app.emit('status-change', 'Watching for packs...');
@@ -178,9 +178,9 @@ module.exports = {
         app.emit('status-change', message);
         busyFlag = false;
         pack.pending = false;
-        unsentPacks = store.get('unsentPacks') == '' ? {} : store.get('unsentPacks')
+        unsentPacks = packStore.get('unsentPacks') == '' ? {} : packStore.get('unsentPacks')
         unsentPacks[pack.created_at_hs] = pack
-        store.set('unsentPacks', unsentPacks)
+        packStore.set('unsentPacks', unsentPacks)
 
         setTimeout(function(){
           app.emit('status-change', 'Watching for packs...');
@@ -192,9 +192,9 @@ module.exports = {
   },
 
   storePack: function(pack) {
-    unsentPacks = store.get('unsentPacks') == '' ? {} : store.get('unsentPacks')
+    unsentPacks = packStore.get('unsentPacks') == '' ? {} : packStore.get('unsentPacks')
     unsentPacks[pack.created_at_hs] = pack
-    store.set('unsentPacks', unsentPacks)
+    packStore.set('unsentPacks', unsentPacks)
   },
 
   getLines: function() {
@@ -216,23 +216,23 @@ module.exports = {
   },
 
   clearPendingFlags: function() {
-    unsentPacks = store.get('unsentPacks')
+    unsentPacks = packStore.get('unsentPacks')
     if (Object.keys(unsentPacks).length > 0) {
       console.log('clearPendingFlags found packs: ',unsentPacks);
       Object.values(unsentPacks).forEach(function(pack) {
         pack.pending = false;
       });
-      store.set('unsentPacks',unsentPacks)
+      packStore.set('unsentPacks',unsentPacks)
     }
 
   },
 
   watchPacks: function() {
     let self = this;
-    fs.watchFile(store.path, { interval: 1007 }, function(current, old){
+    fs.watchFile(packStore.path, { interval: 1007 }, function(current, old){
       console.log('watchPacks triggered');
       if (current.size != old.size) {
-        unsentPacks = store.get('unsentPacks')
+        unsentPacks = packStore.get('unsentPacks')
         let packsToSend = Object.values(unsentPacks).filter( ( pack ) => {
           return pack.pending == false
         });
@@ -240,7 +240,7 @@ module.exports = {
         Object.values(unsentPacks).forEach(function(pack) {
           pack.pending = true
         });
-        store.set('unsentPacks',unsentPacks)
+        packStore.set('unsentPacks',unsentPacks)
 
         if (Object.keys(packsToSend).length > 0) {
           Object.values(packsToSend).forEach(function(element) {
