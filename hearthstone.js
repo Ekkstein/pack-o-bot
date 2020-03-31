@@ -111,15 +111,21 @@ module.exports = {
   },
 
   buildRequest: function(pack) {
-    console.log(pack);
+    let url, appToken
+    if (process.env.ELECTRON_ENV === 'development'){
+      url = 'http://localhost:3001/api/v1/packs'
+      appToken = config.devToken
+    } else {
+      url = 'https://pitytracker.com/api/v1/packs'
+      appToken = config.apptoken
+    }
     return {
-      url: 'https://pitytracker.com/api/v1/packs',
-      // url: 'http://localhost:3001/api/v1/packs',
+      url: url,
       body: pack,
       json: true,
       headers: {
         pobtoken: userStore.get('token'),
-        Authorization: 'Token token="'+ config.apptoken +'"',
+        Authorization: 'Token token="'+ appToken +'"',
         'Content-Type': 'application/json'
       },
       timeout: 10000
