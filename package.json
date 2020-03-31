@@ -4,7 +4,7 @@
   "description": "A minimal application to track Hearthstone packs",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "ELECTRON_ENV=development electron ."
   },
   "repository": "https://bitbucket.org/jaredmellentine/pack-o-bot",
   "keywords": [

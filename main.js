@@ -65,8 +65,14 @@ function createSettingsWindow () {
     x: 1300, y: 50
   });
 
-  settingsWindow.token = userStore.get('token');
-  settingsWindow.hearthstoneDir = userStore.get('hearthstoneDir');
+  if (process.env.ELECTRON_ENV === 'development') {
+    settingsWindow.token = 'hhCTFq5Uhh5tDET9ogoLFA'
+    settingsWindow.hearthstoneDir = userStore.get('hearthstoneDir');
+  } else {
+    settingsWindow.token = userStore.get('token');
+    settingsWindow.hearthstoneDir = userStore.get('hearthstoneDir');
+  }
+
   settingsWindow.dataDir = userStore.get('dataDir');
 
   settingsWindow.loadURL(url.format({
@@ -97,9 +103,6 @@ function createDebugWindow () {
     x: 1850, y: 50
   });
 
-  // debugWindow.token = userStore.get('token');
-  // debugWindow.hearthstoneDir = userStore.get('hearthstoneDir');
-  // debugWindow.dataDir = userStore.get('dataDir');
   debugWindow.unsentPacks = packStore.get('unsentPacks');
 
   debugWindow.loadURL(url.format({
@@ -169,10 +172,20 @@ let setupContextMenu = function(){
         createSettingsWindow();
       }
     },
-    {
-      label: 'Debug',
-      click: function () {
-        createDebugWindow();
+    if (process.env.ELECTRON_ENV === 'development') {
+      {
+        label: 'Debug',
+        click: function () {
+          createDebugWindow();
+        }
+      },
+      { type: "separator" },
+      {
+        label: 'Simulate Pack Opening',
+        click: function () {
+          // createSettingsWindow();
+          Tester.openPack();
+        }
       }
     },
     { type: "separator" },
@@ -180,14 +193,6 @@ let setupContextMenu = function(){
       label: status_message,
       enabled: false
     },
-    // { type: "separator" },
-    // {
-    //   label: 'Simulate Pack Opening',
-    //   click: function () {
-    //     // createSettingsWindow();
-    //     Tester.openPack();
-    //   }
-    // },
     { type: "separator" },
     {
       label: 'Quit',
@@ -241,6 +246,7 @@ app.on('status-change', function (message) {
   // settingsWindow.webContents.send('status-change', message);
   debugWindow.webContents.send('status-change', message);
   console.log('test main')
+  console.log(process.env.ELECTRON_ENV)
 
   // if (settingsWindow) {
   //   settingsWindow.webContents.send('status-change', message);
