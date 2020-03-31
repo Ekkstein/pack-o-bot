@@ -1,6 +1,5 @@
 const electron = require('electron');
 const app = electron.app;
-const _ = require('lodash');
 const BrowserWindow = electron.BrowserWindow;
 const ipc = electron.ipcMain;
 const Menu = electron.Menu;
