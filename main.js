@@ -18,7 +18,8 @@ const Tester = require(path.join(__dirname, 'tester.js'));
 
 let appIcon = null;
 
-let mainWindow;
+let settingsWindow;
+let debugWindow;
 
 let status_message = 'Watching for packs...';
 
@@ -44,32 +45,70 @@ function checkForUpdate () {
   });
 }
 
-function createWindow () {
+function createSettingsWindow () {
   if (require('os').platform() === 'darwin') {
     app.dock.show();
   }
 
-  mainWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 350});
+  settingsWindow = new BrowserWindow({
+    backgroundColor: '#f4f4f4', 
+    width: 400, 
+    height: 350, 
+    x: 1400, y: 200
+  });
 
-  mainWindow.token = store.get('token');
-  mainWindow.hearthstoneDir = store.get('hearthstoneDir');
-  mainWindow.dataDir = store.get('dataDir');
+  settingsWindow.token = store.get('token');
+  settingsWindow.hearthstoneDir = store.get('hearthstoneDir');
+  settingsWindow.dataDir = store.get('dataDir');
 
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
+  settingsWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'windows/settings.html'),
     protocol: 'file:',
     slashes: true
   }));
 
-  mainWindow.show();
+  // settingsWindow.show();
 
-  mainWindow.on('closed', function () {
-    mainWindow = null;
+  settingsWindow.on('closed', function () {
+    settingsWindow = null;
     if (require('os').platform() === 'darwin') {
       app.dock.hide();
     }
   });
 }
+
+function createDebugWindow () {
+  if (require('os').platform() === 'darwin') {
+    app.dock.show();
+  }
+
+  debugWindow = new BrowserWindow({
+    backgroundColor: '#f4f4f4', 
+    width: 400, 
+    height: 350, 
+    x: 1850, y: 200
+  });
+
+  // debugWindow.token = store.get('token');
+  // debugWindow.hearthstoneDir = store.get('hearthstoneDir');
+  debugWindow.dataDir = store.get('dataDir');
+
+  debugWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'windows/debug.html'),
+    protocol: 'file:',
+    slashes: true
+  }));
+
+  // debugWindow.show();
+
+  debugWindow.on('closed', function () {
+    debugWindow = null;
+    if (require('os').platform() === 'darwin') {
+      app.dock.hide();
+    }
+  });
+}
+
 
 function createUpdateWindow () {
   if (require('os').platform() === 'darwin') {
@@ -116,9 +155,15 @@ let setupContextMenu = function(){
       enabled: false
     },
     {
-      label: 'Settings...',
+      label: 'Settings',
       click: function () {
-        createWindow();
+        createSettingsWindow();
+      }
+    },
+    {
+      label: 'Debug',
+      click: function () {
+        createDebugWindow();
       }
     },
     { type: "separator" },
@@ -126,11 +171,11 @@ let setupContextMenu = function(){
       label: status_message,
       enabled: false
     },
-    { type: "separator" },
+    // { type: "separator" },
     // {
     //   label: 'Simulate Pack Opening',
     //   click: function () {
-    //     // createWindow();
+    //     // createSettingsWindow();
     //     Tester.openPack();
     //   }
     // },
@@ -165,7 +210,6 @@ app.on('ready', function(){
   hs.watchLogfile();
   hs.clearPendingFlags();
 
-
   let template = [{
     label: "Application",
     submenu: [
@@ -177,16 +221,20 @@ app.on('ready', function(){
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
-  createWindow();
+  createSettingsWindow();
+  createDebugWindow();
 });
 
 app.on('status-change', function (message) {
   status_message = message;
   setupContextMenu();
 
-  if (mainWindow) {
-    mainWindow.webContents.send('status-change', message);
-  }
+  settingsWindow.webContents.send('status-change', message);
+  debugWindow.webContents.send('status-change', message);
+
+  // if (settingsWindow) {
+  //   settingsWindow.webContents.send('status-change', message);
+  // }
 });
 
 app.on('window-all-closed', function () {
@@ -194,7 +242,10 @@ app.on('window-all-closed', function () {
 });
 
 app.on('activate', function () {
-  if (mainWindow === null) {
-    createWindow();
+  if (settingsWindow === null) {
+    createSettingsWindow();
+  }
+  if (debugWindow === null) {
+    createDebugWindow();
   }
 });
