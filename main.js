@@ -100,7 +100,12 @@ function createDebugWindow () {
     backgroundColor: '#f4f4f4', 
     width: 800, 
     height: 1000, 
-    x: 1850, y: 50
+    x: 1850, y: 50,
+    // title: 'CD App', 
+    // frame: false, 
+    // titleBarStyle: 'hidden', 
+    // type: 'desktop',
+    alwaysOnTop: true
   });
 
   debugWindow.unsentPacks = packStore.get('unsentPacks');
@@ -172,20 +177,18 @@ let setupContextMenu = function(){
         createSettingsWindow();
       }
     },
-    if (process.env.ELECTRON_ENV === 'development') {
-      {
-        label: 'Debug',
-        click: function () {
-          createDebugWindow();
-        }
-      },
-      { type: "separator" },
-      {
-        label: 'Simulate Pack Opening',
-        click: function () {
-          // createSettingsWindow();
-          Tester.openPack();
-        }
+    {
+      label: 'Debug',
+      click: function () {
+        createDebugWindow();
+      }
+    },
+    { type: "separator" },
+    {
+      label: 'Simulate Pack Opening',
+      click: function () {
+        // createSettingsWindow();
+        Tester.openPack();
       }
     },
     { type: "separator" },
