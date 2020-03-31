@@ -114,7 +114,7 @@ module.exports = {
     let url, appToken
     if (process.env.ELECTRON_ENV === 'development'){
       url = 'http://localhost:3001/api/v1/packs'
-      appToken = 'funnysecrets'
+      appToken = config.devToken
     } else {
       url = 'https://pitytracker.com/api/v1/packs'
       appToken = config.apptoken
