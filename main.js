@@ -54,7 +54,7 @@ function createSettingsWindow () {
     backgroundColor: '#f4f4f4', 
     width: 400, 
     height: 350, 
-    x: 1400, y: 200
+    x: 1400, y: 50
   });
 
   settingsWindow.token = store.get('token');
@@ -85,12 +85,12 @@ function createDebugWindow () {
   debugWindow = new BrowserWindow({
     backgroundColor: '#f4f4f4', 
     width: 400, 
-    height: 350, 
-    x: 1850, y: 200
+    height: 600, 
+    x: 1850, y: 50
   });
 
-  // debugWindow.token = store.get('token');
-  // debugWindow.hearthstoneDir = store.get('hearthstoneDir');
+  debugWindow.token = store.get('token');
+  debugWindow.hearthstoneDir = store.get('hearthstoneDir');
   debugWindow.dataDir = store.get('dataDir');
 
   debugWindow.loadURL(url.format({
@@ -229,7 +229,7 @@ app.on('status-change', function (message) {
   status_message = message;
   setupContextMenu();
 
-  settingsWindow.webContents.send('status-change', message);
+  // settingsWindow.webContents.send('status-change', message);
   debugWindow.webContents.send('status-change', message);
 
   // if (settingsWindow) {
