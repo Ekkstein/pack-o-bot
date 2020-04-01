@@ -254,8 +254,7 @@ app.on('status-change', function (message) {
 
   // settingsWindow.webContents.send('status-change', message);
   debugWindow.webContents.send('status-change', message);
-  console.log('test main')
-  console.log(process.env.ELECTRON_ENV)
+  console.log('status-change event received')
 
   // if (settingsWindow) {
   //   settingsWindow.webContents.send('status-change', message);

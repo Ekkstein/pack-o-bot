@@ -224,7 +224,7 @@ module.exports = {
   clearPendingFlags: function() {
     unsentPacks = packStore.get('unsentPacks')
     if (Object.keys(unsentPacks).length > 0) {
-      console.log('clearPendingFlags found packs: ',unsentPacks);
+      console.log('clearPendingFlags found packs: ',Object.keys(unsentPacks).length);
       Object.values(unsentPacks).forEach(function(pack) {
         pack.pending = false;
       });
