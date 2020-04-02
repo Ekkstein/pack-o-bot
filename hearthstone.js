@@ -5,8 +5,8 @@ const request = require('request');
 const async = require('async');
 const config = require(path.join(__dirname, 'config.json'));
 const app = require('electron').app;
-
 const Store = require(path.join(__dirname, 'Store.js'));
+
 let packStore = new Store({
   configName: 'packs',
   defaults: {
@@ -26,30 +26,24 @@ let busyFlag = false;
 
 const packStorage = require('electron-json-storage');
 
-let configFile = (userStore.get('dataDir') !== '') ? (
-  path.join(userStore.get('dataDir'), 'log.config')
-) : (
-  (process.platform === 'win32') ? (
-    path.join(require('os').homedir(), 'AppData/Local/Blizzard/Hearthstone/log.config')
-  ) : (
-    path.join(require('os').homedir(), '/Library/Preferences/Blizzard/Hearthstone/log.config')
-  )
+let configFile = (userStore.get('dataDir') !== '')
+  ? (path.join(userStore.get('dataDir'), 'log.config'))
+  : ((process.platform === 'win32')
+    ? (path.join(require('os').homedir(), 'AppData/Local/Blizzard/Hearthstone/log.config'))
+    : (path.join(require('os').homedir(), '/Library/Preferences/Blizzard/Hearthstone/log.config'))
 );
-let logPath = (userStore.get('hearthstoneDir') !== '') ? (
-  path.join(userStore.get('hearthstoneDir'), 'Logs/')
-) : (
-  (process.platform === 'win32') ? (
-    'C:/Program Files (x86)/Hearthstone/Logs/'
-  ) : (
-    '/Applications/Hearthstone/Logs/'
-  )
+
+let logPath = (userStore.get('hearthstoneDir') !== '')
+  ? (path.join(userStore.get('hearthstoneDir'), 'Logs/'))
+  : ( (process.platform === 'win32')
+    ? ('C:/Program Files (x86)/Hearthstone/Logs/')
+    : ('/Applications/Hearthstone/Logs/')
 );
+
 module.exports = {
   configFile,
   logPath,
-
   region: 'xx',
-
   requiredLogs: [
     'Achievements',
     'BattleNet',
@@ -68,7 +62,6 @@ module.exports = {
         if (typeof existing[v] === 'undefined') {
           existing[v] = {};
         }
-
         existing[v].LogLevel = 1;
         existing[v].FilePrinting = true;
       });
@@ -86,45 +79,40 @@ module.exports = {
     let self = this;
 
     return fs.readFile(path.join(this.logPath, 'BattleNet.log'), 'utf8', function(error, contents) {
-      if (error) return;
+        if (error) return;
+        let line = contents.substr(0, 128);
+        let region = line.match(/(us|eu|kr)\.actual.battle.net/);
+        let new_region = (region === null) ? packStore.get('region') : region[1];
 
-      let line = contents.substr(0, 128);
-
-      let region = line.match(/(us|eu|kr)\.actual.battle.net/);
-
-      let new_region = (region === null) ? packStore.get('region') : region[1];
-
-      if (self.region !== new_region) {
-        self.region = new_region;
-
-        packStore.set('region', self.region);
-
-        app.emit('status-change', 'Updated region to ' + new_region.toUpperCase());
-
-        setTimeout(function(){
-          app.emit('status-change', 'Watching for packs...');
-        }, 5000);
-
-      }
-      callback();
-    });
-  },
+        if (self.region !== new_region) {
+          self.region = new_region;
+          packStore.set('region', self.region);
+          app.emit('status-change', 'Updated region to ' + new_region.toUpperCase());
+          setTimeout(function(){
+            app.emit('status-change', 'Watching for packs...');
+          }, 5000);
+        }
+        callback();
+      });
+    },
 
   buildRequest: function(pack) {
-    let url, appToken
+    let url, appToken, pobToken
     if (process.env.ELECTRON_ENV === 'development'){
       url = 'http://localhost:3001/api/v1/packs'
       appToken = config.devToken
+      pobToken = 'hhCTFq5Uhh5tDET9ogoLFA'
     } else {
       url = 'https://pitytracker.com/api/v1/packs'
       appToken = config.apptoken
+      userStore.get('token')
     }
     return {
       url: url,
       body: pack,
       json: true,
       headers: {
-        pobtoken: userStore.get('token'),
+        pobtoken: pobToken,
         Authorization: 'Token token="'+ appToken +'"',
         'Content-Type': 'application/json'
       },
@@ -145,6 +133,13 @@ module.exports = {
     asyncTask = function (callback, results) {
       app.emit('status-change', 'Uploading your pack to PityTracker...');
       req = self.buildRequest(pack);
+      console.log('Sending Pack');
+      packInfo = {
+        'url': req.url,
+        'pobtoken': req.headers.pobtoken,
+        'timeout': req.timeout
+      }
+      console.log(packInfo);
       return request.post(req, function(error, response, body){
         if (response && response.statusCode === 201) {
           let message = 'Pack uploaded to PityTracker.'
@@ -228,13 +223,12 @@ module.exports = {
   clearPendingFlags: function() {
     unsentPacks = packStore.get('unsentPacks')
     if (Object.keys(unsentPacks).length > 0) {
-      console.log('clearPendingFlags found packs: ',unsentPacks);
+      console.log('clearPendingFlags found packs: ',Object.keys(unsentPacks).length);
       Object.values(unsentPacks).forEach(function(pack) {
         pack.pending = false;
       });
       packStore.set('unsentPacks',unsentPacks)
     }
-
   },
 
   watchPacks: function() {
