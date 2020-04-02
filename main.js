@@ -53,16 +53,19 @@ function checkForUpdate () {
   });
 }
 
+
 function createSettingsWindow () {
   if (require('os').platform() === 'darwin') {
     app.dock.show();
   }
 
+  console.log('settingsWindow created')
+
   settingsWindow = new BrowserWindow({
     backgroundColor: '#f4f4f4',
     width: 400,
     height: 350,
-    x: 1300, y: 50
+    x: 1400, y: 50
   });
 
   if (process.env.ELECTRON_ENV === 'development') {
@@ -91,14 +94,17 @@ function createSettingsWindow () {
   });
 }
 
+
 function createDebugWindow () {
   if (require('os').platform() === 'darwin') {
     app.dock.show();
   }
 
+  console.log('debugWindow created')
+
   debugWindow = new BrowserWindow({
     backgroundColor: '#f4f4f4', 
-    width: 800, 
+    width: 600, 
     height: 1000, 
     x: 1850, y: 50
     // title: 'CD App', 
@@ -132,6 +138,8 @@ function createUpdateWindow () {
     app.dock.show();
   }
 
+  console.log('updateWindow created')
+
   updateWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 180});
 
   updateWindow.loadURL(url.format({
@@ -150,6 +158,7 @@ function createUpdateWindow () {
   });
 }
 
+
 ipc.on('put-in-tray', function (event) {
   if (appIcon !== null) return;
 
@@ -164,6 +173,7 @@ ipc.on('put-in-tray', function (event) {
 
   setupContextMenu(appIcon);
 });
+
 
 let setupContextMenu = function(){
   const menuItems = [
@@ -192,13 +202,13 @@ let setupContextMenu = function(){
   ]
   if (process.env.ELECTRON_ENV === 'development') {
     const devItems = [
+      { type: "separator" },
       {
-        label: 'Debug',
+        label: 'Debug Window',
         click: function () {
           createDebugWindow();
         }
       },
-      { type: "separator" },
       {
         label: 'Simulate Pack Opening',
         click: function () {
@@ -249,16 +259,13 @@ app.on('ready', function(){
 });
 
 app.on('status-change', function (message) {
+  console.log('status-change event received: ' + message);
   status_message = message;
   setupContextMenu();
 
-  // settingsWindow.webContents.send('status-change', message);
-  debugWindow.webContents.send('status-change', message);
-  console.log('status-change event received')
-
-  // if (settingsWindow) {
-  //   settingsWindow.webContents.send('status-change', message);
-  // }
+  if (debugWindow) {
+    debugWindow.webContents.send('status-change', message);
+  }
 });
 
 app.on('window-all-closed', function () {
