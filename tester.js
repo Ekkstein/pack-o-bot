@@ -28,9 +28,10 @@ Tester = {
     let line = 'D ' + self.formatTime(now) + ' NotifyOfCardGained: ' + cardInfo + ' NORMAL 3\n';
     return line;
   },
-
   buildLines: function(callback) {
     let self = this;
+    // swap a card in cards with this line to provoke a multiple set_type error
+      // "[name=Incanter's Flow cardId=BT_002 type=SPELL]",
     let cards = [
       '[name=Shadow Visions cardId=UNG_029 type=SPELL]',
       '[name=Stonehill Defender cardId=UNG_072 type=MINION]',

@@ -146,7 +146,7 @@ module.exports = {
       app.emit('status-change', 'Uploading your pack to PityTracker...');
       req = self.buildRequest(pack);
       return request.post(req, function(error, response, body){
-        if (response && response.statusCode < 300) {
+        if (response && response.statusCode === 201) {
           let message = 'Pack uploaded to PityTracker.'
           app.emit('status-change', message);
           busyFlag = false;
@@ -158,6 +158,10 @@ module.exports = {
             app.emit('status-change', 'Watching for packs...');
           }, 5000);
           callback(null, 'done');
+        }
+        else if (response && response.statusCode === 400 && body &&body.pack && body.pack.set_type === 'multiple'){
+          let message = `This pack can't be uploaded. It's set_type is not identifyable`;
+          app.emit('status-change', message);
         }
         else if (response && response.statusCode >= 300){
           let message = 'Retrying pack upload...(statusCode: '+ response.statusCode + ')';
