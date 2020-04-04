@@ -6,7 +6,6 @@ const userDataPath = (electron.app || electron.remote.app).getPath('userData');
 class Store {
   constructor(opts) {
     this.path = path.join(userDataPath, opts.configName + '.json');
-
     this.data = parseDataFile(this.path, opts.defaults);
     this.options = opts;
     this.loadedFromFile = false;
@@ -25,6 +24,10 @@ class Store {
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
 
+  log(entry) {
+    this.data['log'].push(entry)
+    this.set('log', this.data['log'])
+  }
   /**
    * Write multiple key/value pairs to a file.
    * @param {Object[]} pairs - The key/value pairs to be written.
@@ -37,12 +40,12 @@ class Store {
     });
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
-
 }
 
 function parseDataFile(filePath, defaults) {
   try {
-    return JSON.parse(fs.readFileSync(filePath));
+    const presentData = JSON.parse(fs.readFileSync(filePath))
+    return {...defaults, ...presentData}
   } catch(error) {
     if (!fs.existsSync(userDataPath)){ fs.mkdirSync(userDataPath); }
     fs.writeFileSync(filePath, JSON.stringify(defaults));

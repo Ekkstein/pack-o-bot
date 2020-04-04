@@ -1,6 +1,9 @@
+// const path = require('path');
+// import { packStore } from path.join(__dirname, 'hearthstone.js')
 let electron = require('electron');
 let win = electron.remote.getCurrentWindow();
 let packQueue = win.unsentPacks;
+// let packQueue = packStore.get('unsentPacks');
 
 // app.dock.hide();
 // win.setAlwaysOnTop(true, "floating", 1);

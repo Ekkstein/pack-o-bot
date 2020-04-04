@@ -23,20 +23,22 @@ let debugWindow;
 
 let status_message = 'Watching for packs...';
 
-const userStore = new Store({
-  configName: 'user',
-  defaults: {
-    token: null
-  }
-});
+const userStore = hs.userStore
+// const userStore = new Store({
+//   configName: 'user',
+//   defaults: {
+//     token: null
+//   }
+// });
 
-let packStore = new Store({
-  configName: 'packs',
-  defaults: {
-    region: 'xx',
-    unsentPacks: {}
-  }
-});
+let packStore = hs.packStore
+// let packStore = new Store({
+//   configName: 'packs',
+//   defaults: {
+//     region: 'xx',
+//     unsentPacks: {}
+//   }
+// });
 
 function checkForUpdate () {
   req = {
@@ -103,13 +105,13 @@ function createDebugWindow () {
   console.log('debugWindow created')
 
   debugWindow = new BrowserWindow({
-    backgroundColor: '#f4f4f4', 
-    width: 600, 
-    height: 1000, 
+    backgroundColor: '#f4f4f4',
+    width: 600,
+    height: 1000,
     x: 1850, y: 50
-    // title: 'CD App', 
-    // frame: false, 
-    // titleBarStyle: 'hidden', 
+    // title: 'CD App',
+    // frame: false,
+    // titleBarStyle: 'hidden',
     // type: 'desktop',
     // alwaysOnTop: true
   });
@@ -210,10 +212,17 @@ let setupContextMenu = function(){
         }
       },
       {
-        label: 'Simulate Pack Opening',
+        label: 'Simulate good Pack Opening',
         click: function () {
           // createSettingsWindow();
-          Tester.openPack();
+          Tester.openPack(true);
+        }
+      },
+      {
+        label: 'Simulate bad Pack Opening',
+        click: function () {
+          // createSettingsWindow();
+          Tester.openPack(false);
         }
       }
     ]

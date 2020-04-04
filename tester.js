@@ -28,25 +28,23 @@ Tester = {
     let line = 'D ' + self.formatTime(now) + ' NotifyOfCardGained: ' + cardInfo + ' NORMAL 3\n';
     return line;
   },
-  buildLines: function(callback) {
-    let self = this;
-    // swap a card in cards with this line to provoke a multiple set_type error
-      // "[name=Incanter's Flow cardId=BT_002 type=SPELL]",
+
+  buildLines: function(goodPack, callback) {
     let cards = [
-      '[name=Shadow Visions cardId=UNG_029 type=SPELL]',
       '[name=Stonehill Defender cardId=UNG_072 type=MINION]',
       '[name=Ornery Direhorn cardId=UNG_925 type=MINION]',
       '[name=Tar Creeper cardId=UNG_928 type=MINION]',
       '[name=Rockpool Hunter cardId=UNG_073 type=MINION]'
-    ];
-
-    let lines = [];
-    lines.push('\n');
-    cards.forEach(function(element) {
-      lines.push(self.buildLine(element));
-    });
-
-    callback(lines);
+    ]
+    if (goodPack) {
+      cards.push('[name=Shadow Visions cardId=UNG_029 type=SPELL]')
+    } else {
+      cards.push("[name=Incanter's Flow cardId=BT_002 type=SPELL]")
+    }
+    cards = cards.map( this.buildLine.bind(this) )
+    cards.unshift('\n')
+    callback(cards);
+    return
   },
 
   writeLines: function(lines) {
@@ -61,10 +59,9 @@ Tester = {
     });
   },
 
-  openPack: function() {
-    let self = this;
-    self.buildLines(self.writeLines);
-  }
+  openPack: function(goodPack=true) {
+    this.buildLines(goodPack, this.writeLines);
+  },
 
 }
 

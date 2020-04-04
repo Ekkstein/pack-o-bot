@@ -6,19 +6,21 @@ const async = require('async');
 const config = require(path.join(__dirname, 'config.json'));
 const app = require('electron').app;
 const Store = require(path.join(__dirname, 'Store.js'));
+const PackStore = require(path.join(__dirname, 'PackStore.js'));
 
-let packStore = new Store({
+let packStore = new PackStore({
   configName: 'packs',
   defaults: {
     region: 'xx',
-    unsentPacks: {}
+    unsentPacks: {},
   }
 });
 
 let userStore = new Store({
   configName: 'user',
   defaults: {
-    token: null
+    token: null,
+    log: [],
   }
 });
 
@@ -48,6 +50,8 @@ module.exports = {
     'Achievements',
     'BattleNet',
   ],
+  packStore,
+  userStore,
 
   setup: function() {
     let self = this;
@@ -133,21 +137,17 @@ module.exports = {
     asyncTask = function (callback, results) {
       app.emit('status-change', 'Uploading your pack to PityTracker...');
       req = self.buildRequest(pack);
-      console.log('Sending Pack');
       packInfo = {
         'url': req.url,
         'pobtoken': req.headers.pobtoken,
         'timeout': req.timeout
       }
-      console.log(packInfo);
       return request.post(req, function(error, response, body){
         if (response && response.statusCode === 201) {
           let message = 'Pack uploaded to PityTracker.'
           app.emit('status-change', message);
           busyFlag = false;
-          let unsentPacks = packStore.get('unsentPacks')
-          delete unsentPacks[pack.created_at_hs]
-          packStore.set('unsentPacks',unsentPacks)
+          packStore.removeUnsentPack(pack)
           self.clearPendingFlags()
           setTimeout(function(){
             app.emit('status-change', 'Watching for packs...');
@@ -155,8 +155,12 @@ module.exports = {
           callback(null, 'done');
         }
         else if (response && response.statusCode === 400 && body &&body.pack && body.pack.set_type === 'multiple'){
-          let message = `This pack can't be uploaded. It's set_type is not identifyable`;
+          let message = "This pack can't be uploaded. It's set_type is not identifyable. You can find it in packobots app directory in user.json for review.";
+          userStore.log(pack)
+          packStore.removeUnsentPack(pack)
           app.emit('status-change', message);
+          busyFlag = false;
+          callback(null, 'done');
         }
         else if (response && response.statusCode >= 300){
           let message = 'Retrying pack upload...(statusCode: '+ response.statusCode + ')';
@@ -183,10 +187,7 @@ module.exports = {
         app.emit('status-change', message);
         busyFlag = false;
         pack.pending = false;
-        unsentPacks = packStore.get('unsentPacks') == '' ? {} : packStore.get('unsentPacks')
-        unsentPacks[pack.created_at_hs] = pack
-        packStore.set('unsentPacks', unsentPacks)
-
+        packStore.saveUnsentPack(pack)
         setTimeout(function(){
           app.emit('status-change', 'Watching for packs...');
         }, 5000);
@@ -194,12 +195,6 @@ module.exports = {
     }
 
     async.retry(asyncOptions, asyncTask, asyncCallback);
-  },
-
-  storePack: function(pack) {
-    unsentPacks = packStore.get('unsentPacks') == '' ? {} : packStore.get('unsentPacks')
-    unsentPacks[pack.created_at_hs] = pack
-    packStore.set('unsentPacks', unsentPacks)
   },
 
   getLines: function() {
@@ -287,7 +282,7 @@ module.exports = {
                   cards: element,
                   pending: false
                 }
-                self.storePack(pack);
+                packStore.saveUnsentPack(pack)
               });
             });
           } else {
