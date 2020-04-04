@@ -265,6 +265,7 @@ app.on('status-change', function (message) {
 
   if (debugWindow) {
     debugWindow.webContents.send('status-change', message);
+    settingsWindow.webContents.send('status-change', message);
   }
 });
 

@@ -46,6 +46,6 @@ document.body.querySelectorAll('.accordion > :first-child').forEach(element => {
   };
 });
 
-// electron.ipcRenderer.on('status-change', function (event, message) {
-//   document.getElementById('status').innerText = message;
-// });
+electron.ipcRenderer.on('status-change', function (event, message) {
+  document.getElementById('status').innerText = message;
+});
