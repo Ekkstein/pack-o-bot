@@ -1,4 +1,5 @@
 const electron = require('electron');
+const electronLocalshortcut = require('electron-localshortcut');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const ipc = electron.ipcMain;
@@ -67,7 +68,11 @@ function createSettingsWindow () {
     backgroundColor: '#f4f4f4',
     width: 400,
     height: 350,
-    x: 1400, y: 50
+    x: 1400, y: 50,
+    webPreferences: {
+      nodeIntegration: true
+    },
+    alwaysOnTop: true,
   });
 
   if (process.env.ELECTRON_ENV === 'development') {
@@ -94,6 +99,12 @@ function createSettingsWindow () {
       app.dock.hide();
     }
   });
+
+  electronLocalshortcut.register(settingsWindow, 'F12', () => {
+    settingsWindow.webContents.openDevTools()
+  });
+
+  return settingsWindow
 }
 
 
@@ -163,16 +174,12 @@ function createUpdateWindow () {
 
 ipc.on('put-in-tray', function (event) {
   if (appIcon !== null) return;
-
-  let iconPath;
-  iconPath = path.join(__dirname, 'tray-invert.png');
+  let iconPath = path.join(__dirname, 'tray-invert.png');
   if (require('os').platform() === 'darwin') {
     iconPath = electron.nativeImage.createFromPath(path.join(__dirname, 'tray.png'));
-    iconPath.setTemplateImage(true);
+    iconPath.isMacTemplateImage = true;
   }
-
   appIcon = new Tray(iconPath);
-
   setupContextMenu(appIcon);
 });
 
@@ -252,6 +259,10 @@ app.on('ready', function(){
   hs.watchLogfile();
   hs.clearPendingFlags();
 
+  const settingsWindow = createSettingsWindow();
+  // settingsWindow.webContents.openDevTools()
+  createDebugWindow();
+
   let template = [{
     label: "Application",
     submenu: [
@@ -263,8 +274,6 @@ app.on('ready', function(){
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
-  createSettingsWindow();
-  createDebugWindow();
 });
 
 app.on('status-change', function (message) {
