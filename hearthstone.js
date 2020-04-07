@@ -1,10 +1,9 @@
 const fs = require('original-fs');
 const path = require('path');
 const ini = require('ini');
-const request = require('request');
 const async = require('async');
 const config = require(path.join(__dirname, 'config.json'));
-const app = require('electron').app;
+const { net, app } = require('electron');
 const Store = require(path.join(__dirname, 'Store.js'));
 const PackStore = require(path.join(__dirname, 'PackStore.js'));
 
@@ -27,8 +26,6 @@ let userStore = new Store({
 });
 
 let busyFlag = false;
-
-// const packStorage = require('electron-json-storage');
 
 let configFile
 if (userStore.get('dataDir') !== '') {
@@ -110,27 +107,19 @@ module.exports = {
     );
   },
 
-  buildRequest: function(pack) {
-    let url, appToken, pobToken
-    if (process.env.ELECTRON_ENV === 'development'){
-      url = 'http://localhost:3001/api/v1/packs'
-      appToken = config.devToken
-      pobToken = 'hhCTFq5Uhh5tDET9ogoLFA'
-    } else {
-      url = 'https://pitytracker.com/api/v1/packs'
-      appToken = config.apptoken
-      pobToken = userStore.get('token')
-    }
+  buildRequestOptions: function(pack) {
+    const isDev = process.env.ELECTRON_ENV === 'development'
     return {
-      url: url,
-      body: pack,
-      json: true,
+      method: 'POST',
+      protocol: isDev ? 'http:' : 'https:',
+      hostname: isDev ? 'localhost' : 'pitytracker.com',
+      port: isDev ? 3001 : 443,
+      path: '/api/v1/packs',
       headers: {
-        pobtoken: pobToken,
-        Authorization: 'Token token="'+ appToken +'"',
+        pobtoken: isDev ? 'hhCTFq5Uhh5tDET9ogoLFA' : userStore.get('token'),
+        Authorization: 'Token token="'+ (isDev ? config.devToken : config.apptoken) +'"',
         'Content-Type': 'application/json'
       },
-      timeout: 10000
     }
   },
 
@@ -146,14 +135,10 @@ module.exports = {
 
     asyncTask = function (callback, results) {
       app.emit('status-change', 'Uploading your pack to PityTracker...');
-      req = self.buildRequest(pack);
-      packInfo = {
-        'url': req.url,
-        'pobtoken': req.headers.pobtoken,
-        'timeout': req.timeout
-      }
-      return request.post(req, function(error, response, body){
-        if (response && response.statusCode === 201) {
+      options = self.buildRequestOptions();
+      const request = net.request(options)
+      request.on('response', (response) => {
+        if (response.statusCode === 201) {
           let message = 'Pack uploaded to PityTracker.'
           app.emit('status-change', message);
           busyFlag = false;
@@ -163,31 +148,38 @@ module.exports = {
             app.emit('status-change', 'Watching for packs...');
           }, 5000);
           callback(null, 'done');
-        }
-        else if (response && response.statusCode === 400 && body &&body.pack && body.pack.set_type === 'multiple'){
-          let message = "This pack can't be uploaded. It's set_type is not identifyable. You can find it in packobots app directory in user.json for review.";
-          userStore.log(pack)
-          packStore.removeUnsentPack(pack)
-          app.emit('status-change', message);
-          busyFlag = false;
-          callback(null, 'done');
-        }
-        else if (response && response.statusCode >= 300){
-          let message = 'Retrying pack upload...(statusCode: '+ response.statusCode + ')';
-          app.emit('status-change', message);
-          callback(null, response);
-        }
-        else if (error){
-          let message = 'Retrying pack upload...(error: '+ error + ')';
-          app.emit('status-change', message);
-          callback(error, 'error');
-        }
-        else{
-          let message = 'Error sending response'
+        } else if (response.statusCode >= 300){
+            let message = `Retrying pack upload...(statusCode: ${response.statusCode})`
+            app.emit('status-change', message);
+            callback(null, response);
+        } else if (response.statusCode != 201){
+          let message = `Unknown error while sending Pack: (${response.statusCode})`
           app.emit('status-change', message);
           callback(null, 'unknown Error');
         }
-      });
+        response.on('data', (body) => {
+          const responsePack = JSON.parse(body).pack
+          if (response.statusCode === 400 && responsePack.set_type === 'multiple'){
+            let message = "This pack can't be uploaded. It's set_type is not identifyable. You can find it in packobots app directory in user.json for review.";
+            userStore.log(pack)
+            packStore.removeUnsentPack(pack)
+            app.emit('status-change', message);
+            busyFlag = false;
+            callback(null, 'done');
+          }
+        })
+        response.on('error', (error) => {
+          let message = 'Retrying pack upload...(error: '+ error + ')';
+          app.emit('status-change', message);
+          callback(error, 'error');
+        })
+        // response.on('end', () => {
+        //   console.log('No more data in response.')
+        // })
+      })
+      request.write(JSON.stringify(pack))
+      request.end()
+      return request
     }
 
     asyncCallback = function(response, result) {

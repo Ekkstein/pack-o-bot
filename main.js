@@ -1,12 +1,7 @@
 const electron = require('electron');
+const {app, BrowserWindow, ipcMain: ipc, Menu, Tray, net} = electron;
 const electronLocalshortcut = require('electron-localshortcut');
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
-const ipc = electron.ipcMain;
-const Menu = electron.Menu;
-const Tray = electron.Tray;
 const fs = require('original-fs');
-const request = require('request');
 
 const path = require('path');
 const url = require('url');
@@ -27,27 +22,24 @@ const userStore = hs.userStore
 let packStore = hs.packStore
 
 function checkForUpdate () {
-  req = {
-    // url: 'https://github.com/mlntn/pack-o-bot/releases/latest',
-    // url: 'https://github.com/stevschmid/track-o-bot/releases/latest',
-    url: 'https://pitytracker.com/packobot-version.txt',
-    timeout: 10000
-  };
-  return request.get(req, function(error, response, body){
-    if (body > app.getVersion()) {
-      console.log('You need to update pack-o-bot!', app.getVersion());
-      createUpdateWindow();
-    }
+  const url = 'https://pitytracker.com/packobot-version.txt'
+  const request = net.request(url, res => {
+    res.on('data', d => {
+      const currentVersion = d.toString()
+      if (currentVersion > app.getVersion()) {
+        console.log('You need to update pack-o-bot!', app.getVersion());
+        createUpdateWindow();
+      }
+    })
   });
+  request.on('error', error => { console.error(error) })
+  request.end()
 }
-
 
 function createSettingsWindow () {
   if (require('os').platform() === 'darwin') {
     app.dock.show();
   }
-
-  console.log('settingsWindow created')
 
   settingsWindow = new BrowserWindow({
     backgroundColor: '#f4f4f4',
@@ -98,8 +90,6 @@ function createDebugWindow () {
     app.dock.show();
   }
 
-  console.log('debugWindow created')
-
   debugWindow = new BrowserWindow({
     backgroundColor: '#f4f4f4',
     width: 600,
@@ -139,9 +129,11 @@ function createUpdateWindow () {
   console.log('updateWindow created')
 
   updateWindow = new BrowserWindow({backgroundColor: '#f4f4f4', width: 400, height: 180});
-
+  electronLocalshortcut.register(updateWindow, 'F12', () => {
+    updateWindow.webContents.openDevTools()
+  });
   updateWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'update.html'),
+    pathname: path.join(__dirname, 'windows/update.html'),
     protocol: 'file:',
     slashes: true
   }));
@@ -172,7 +164,7 @@ ipc.on('put-in-tray', function (event) {
 let setupContextMenu = function(){
   const menuItems = [
     {
-      label: 'pack-o-bot v0.3.1',
+      label: 'pack-o-bot v'+app.getVersion(),
       enabled: false
     },
     {
@@ -233,6 +225,8 @@ ipc.on('settings-changed', function(event, data) {
     app.emit('status-change', 'Watching for packs...');
   }, 5000);
 });
+
+app.allowRendererProcessReuse = true
 
 app.on('ready', function(){
   checkForUpdate();
