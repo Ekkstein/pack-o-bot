@@ -244,7 +244,9 @@ app.on('ready', function(){
 
   const settingsWindow = createSettingsWindow();
   // settingsWindow.webContents.openDevTools()
-  createDebugWindow();
+  if (process.env.ELECTRON_ENV === 'development') {
+    createDebugWindow();
+  }
 
   let template = [{
     label: "Application",
