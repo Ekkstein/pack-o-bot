@@ -21,19 +21,25 @@ let userStore = new Store({
   defaults: {
     token: null,
     log: [],
+    hearthstoneDir: "",
+    dataDir: "",
   }
 });
 
 let busyFlag = false;
 
-const packStorage = require('electron-json-storage');
+// const packStorage = require('electron-json-storage');
 
-let configFile = (userStore.get('dataDir') !== '')
-  ? (path.join(userStore.get('dataDir'), 'log.config'))
-  : ((process.platform === 'win32')
-    ? (path.join(require('os').homedir(), 'AppData/Local/Blizzard/Hearthstone/log.config'))
-    : (path.join(require('os').homedir(), '/Library/Preferences/Blizzard/Hearthstone/log.config'))
-);
+let configFile
+if (userStore.get('dataDir') !== '') {
+  configFile = path.join(userStore.get('dataDir'), 'log.config')
+} else {
+  if (process.platform === 'win32') {
+    configFile = path.join(require('os').homedir(), 'AppData/Local/Blizzard/Hearthstone/log.config')
+  } else {
+    configFile = path.join(require('os').homedir(), '/Library/Preferences/Blizzard/Hearthstone/log.config')
+  }
+}
 
 let logPath = (userStore.get('hearthstoneDir') !== '')
   ? (path.join(userStore.get('hearthstoneDir'), 'Logs/'))
@@ -81,24 +87,28 @@ module.exports = {
 
   getRegion: function(callback) {
     let self = this;
+    const battleNetLogPath = path.join(this.logPath, 'BattleNet.log')
 
-    return fs.readFile(path.join(this.logPath, 'BattleNet.log'), 'utf8', function(error, contents) {
+    return fs.readFile(battleNetLogPath, 'utf8',
+      function(error, contents) {
         if (error) return;
         let line = contents.substr(0, 128);
         let region = line.match(/(us|eu|kr)\.actual.battle.net/);
-        let new_region = (region === null) ? packStore.get('region') : region[1];
-
-        if (self.region !== new_region) {
-          self.region = new_region;
+        let newRegion = (region === null) ? packStore.get('region') : region[1];
+        if (!newRegion) {
+          app.emit('status-change', 'Error! Could not determine your region.');
+        } else if (newRegion && self.region !== newRegion) {
+          self.region = newRegion;
           packStore.set('region', self.region);
-          app.emit('status-change', 'Updated region to ' + new_region.toUpperCase());
+          app.emit('status-change', 'Updated region to ' + newRegion.toUpperCase());
           setTimeout(function(){
             app.emit('status-change', 'Watching for packs...');
           }, 5000);
         }
         callback();
-      });
-    },
+      }
+    );
+  },
 
   buildRequest: function(pack) {
     let url, appToken, pobToken
@@ -109,7 +119,7 @@ module.exports = {
     } else {
       url = 'https://pitytracker.com/api/v1/packs'
       appToken = config.apptoken
-      userStore.get('token')
+      pobToken = userStore.get('token')
     }
     return {
       url: url,
@@ -197,23 +207,23 @@ module.exports = {
     async.retry(asyncOptions, asyncTask, asyncCallback);
   },
 
-  getLines: function() {
-    let logFile = path.join(this.logPath, 'Achievements.log');
-    fs.watchFile(logFile, { interval: 1007 }, function(current, old){
-      fs.readFile(logFile, 'utf8', function(error, contents){
-        if (contents) {
-          let newLines = contents.substr(old.size, current.size - old.size);
-          let matches = [];
-          newLines.replace(/(D .+?NotifyOfCardGained.+? \d+)/g, function(all, rawCardLine){
-            matches.push(all);
-          });
-          packStorage.set('lines', matches, function(error) {
-            if (error) throw error;
-          });
-        }
-      });
-    });
-  },
+  // getLines: function() {
+  //   let logFile = path.join(this.logPath, 'Achievements.log');
+  //   fs.watchFile(logFile, { interval: 1007 }, function(current, old){
+  //     fs.readFile(logFile, 'utf8', function(error, contents){
+  //       if (contents) {
+  //         let newLines = contents.substr(old.size, current.size - old.size);
+  //         let matches = [];
+  //         newLines.replace(/(D .+?NotifyOfCardGained.+? \d+)/g, function(all, rawCardLine){
+  //           matches.push(all);
+  //         });
+  //         packStorage.set('lines', matches, function(error) {
+  //           if (error) throw error;
+  //         });
+  //       }
+  //     });
+  //   });
+  // },
 
   clearPendingFlags: function() {
     unsentPacks = packStore.get('unsentPacks')
@@ -247,14 +257,15 @@ module.exports = {
           });
         }
       }
-
     });
   },
 
   watchLogfile: function() {
+    // console.log('starting to watch Achievements.log')
     let self = this;
     let logFile = path.join(this.logPath, 'Achievements.log');
     fs.watchFile(logFile, function(current, old){
+      // console.log('watchLogFile triggered')
       fs.readFile(logFile, 'utf8', function(error, contents){
         if (contents) {
           let data = contents.substr(old.size, current.size - old.size);

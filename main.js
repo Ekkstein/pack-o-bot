@@ -11,8 +11,6 @@ const request = require('request');
 const path = require('path');
 const url = require('url');
 
-const Store = require(path.join(__dirname, 'Store.js'));
-
 const hs = require(path.join(__dirname, 'hearthstone.js'));
 
 const Tester = require(path.join(__dirname, 'tester.js'));
@@ -25,21 +23,8 @@ let debugWindow;
 let status_message = 'Watching for packs...';
 
 const userStore = hs.userStore
-// const userStore = new Store({
-//   configName: 'user',
-//   defaults: {
-//     token: null
-//   }
-// });
 
 let packStore = hs.packStore
-// let packStore = new Store({
-//   configName: 'packs',
-//   defaults: {
-//     region: 'xx',
-//     unsentPacks: {}
-//   }
-// });
 
 function checkForUpdate () {
   req = {
@@ -72,7 +57,7 @@ function createSettingsWindow () {
     webPreferences: {
       nodeIntegration: true
     },
-    alwaysOnTop: true,
+    // alwaysOnTop: true,
   });
 
   if (process.env.ELECTRON_ENV === 'development') {
@@ -221,14 +206,12 @@ let setupContextMenu = function(){
       {
         label: 'Simulate good Pack Opening',
         click: function () {
-          // createSettingsWindow();
           Tester.openPack(true);
         }
       },
       {
         label: 'Simulate bad Pack Opening',
         click: function () {
-          // createSettingsWindow();
           Tester.openPack(false);
         }
       }
@@ -254,7 +237,7 @@ ipc.on('settings-changed', function(event, data) {
 app.on('ready', function(){
   checkForUpdate();
   hs.setup();
-  hs.getLines();
+  // hs.getLines();
   hs.watchPacks();
   hs.watchLogfile();
   hs.clearPendingFlags();

@@ -25,7 +25,8 @@ dataDir_input.setAttribute(
 );
 
 document.getElementById('submit').onclick = function(){
-  electron.ipcRenderer.send('settings-changed', [...document.body.querySelectorAll('input')].map(e => ({key: e.id, value: e.value})));
+  const inputs = [...document.body.querySelectorAll('input')].map(e => ({key: e.id, value: e.value}))
+  electron.ipcRenderer.send('settings-changed', inputs);
 };
 
 document.getElementById('token_link').onclick = function(e){

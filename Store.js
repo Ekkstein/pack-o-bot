@@ -5,21 +5,21 @@ const userDataPath = (electron.app || electron.remote.app).getPath('userData');
 
 class Store {
   constructor(opts) {
+    this.options = opts;
     this.path = path.join(userDataPath, opts.configName + '.json');
     this.data = parseDataFile(this.path, opts.defaults);
-    this.options = opts;
-    this.loadedFromFile = false;
   }
 
   get(key) {
-    if (!this.loadedFromFile) {
-      this.data = parseDataFile(this.path);
-      this.loadedFromFile = true;
-    }
-    return this.data[key] || '';
+    // this is bad practice. returning a string, when it could be anything.
+    // It requires other coders to know about this behaviour and as it deviates from
+    // what is expected, it instead should return undefined!
+    // return this.data[key] || '';
+    return this.data[key]
   }
 
   set(key, val) {
+    console.log('Store setting key: ', key, 'val: ',val)
     this.data[key] = val;
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
@@ -45,6 +45,7 @@ class Store {
 function parseDataFile(filePath, defaults) {
   try {
     const presentData = JSON.parse(fs.readFileSync(filePath))
+    // In case additional defaults are added, they need to join the store.
     return {...defaults, ...presentData}
   } catch(error) {
     if (!fs.existsSync(userDataPath)){ fs.mkdirSync(userDataPath); }
