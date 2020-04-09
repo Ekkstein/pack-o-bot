@@ -9,3 +9,6 @@ connection problem. Pack-o-Bots settings and storage files are in the Apps insta
 Due to Pitytrackers pack validation, packs with cards from different sets can not be stored. This applies in general and is
 not limited to Pack-o-Bot. Those Packs will automatically be removed from Pack-o-Bots unsent-packs store and are moved to the
 users data storage: user.json.
+
+*Disclaimer*
+At this is a free time, non profit project. There are no guarantees.
